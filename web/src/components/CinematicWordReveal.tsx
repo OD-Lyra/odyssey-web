@@ -2,7 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { Fragment, useMemo, useRef } from "react";
-import type { Lang } from "../i18n";
+import type { Locale } from "../../i18n.config";
 import {
   LOCOMOTIVE_EASE,
   CINEMATIC_IN_VIEW,
@@ -13,7 +13,7 @@ import {
 
 type Props = {
   text: string;
-  lang: Lang;
+  lang: Locale;
   className?: string;
   preset?: WordRevealPreset;
   /** Added to every word delay (e.g. sync with a parent stagger). */

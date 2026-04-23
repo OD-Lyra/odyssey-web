@@ -46,5 +46,127 @@
       "message": "Your message",
       "submit": "Submit request"
     }
+  },
+  "hero": {
+    "branding": {
+      "line1": "Odyssey",
+      "line2": "Films"
+    },
+    "login": "Login",
+    "primaryCta": "Create a Tribute",
+    "pitch": {
+      "hooks": [
+        "The cinema of their life",
+        "Their life deserves the big screen.",
+        "A tribute fit for the big screen."
+      ],
+      "steps": [
+        "Three steps. A legacy, filmed.",
+        "Three steps. A film for keeps.",
+        "Three steps. A presence that stays.",
+        "Three steps. Memory that lives on.",
+        "Three beats. Forever.",
+        "Three steps. A tribute that honors them."
+      ],
+      "memory": [
+        "Memory, cut like a film.",
+        "Memories in stills, like cinema.",
+        "Their story, cut like a film."
+      ],
+      "signatures": [
+        "Odyssey, emotion in the cut.",
+        "Odyssey, memory in the light.",
+        "Odyssey Films. The last frame."
+      ]
+    },
+    "nav": {
+      "manifesto": "Manifesto",
+      "process": "The Process",
+      "pricing": "Pricing",
+      "partners": "Partners"
+    }
+  },
+  "pricing": {
+    "title": "My Life in Cinema",
+    "sectionSubtitle": "My Life in Cinema",
+    "subtitle": "Choose how deeply you want to honor their story — each tier lets you move at your own pace.",
+    "tierTitles": {
+      "essential": "Essential",
+      "tribute": "Tribute",
+      "legacy": "Legacy"
+    },
+    "tiers": [
+      {
+        "key": "essential",
+        "price": "$49",
+        "style": "Clean and steady",
+        "features": [
+          "Guided editing flow",
+          "Balanced, understated color",
+          "Delivered in 48 hours"
+        ]
+      },
+      {
+        "key": "tribute",
+        "price": "$99",
+        "style": "Sensitive pacing, music at the heart",
+        "features": [
+          "Weaving in moments from loved ones",
+          "Music aligned with the images",
+          "Delivered in 24 hours"
+        ],
+        "popular": true
+      },
+      {
+        "key": "legacy",
+        "price": "$199",
+        "style": "Deep narrative, documentary feel",
+        "features": [
+          "Focus on the passages that matter most",
+          "Respect for rites and beliefs",
+          "Priority delivery in 12 hours"
+        ]
+      }
+    ],
+    "cta": "SELECT",
+    "recommendedBadge": "RECOMMENDED",
+    "recommended": "Recommended"
+  },
+  "manifesto": {
+    "title": "Manifesto",
+    "body": "Every life is a masterpiece that deserves its own cinema. Odyssey is not a tool; it is a visual sanctuary. In the noise of grief, we orchestrate silence, light, and memory to create an unbreakable bond. We don't just make videos; we restore the sovereign dignity of remembrance."
+  },
+  "process": {
+    "title": "THE ODYSSEY PROCESS",
+    "emotionalKicker": "The cinema of their life",
+    "sectionSubtitle": "The Odyssey process",
+    "timelineHint": "Three chapters of one film — material, edit, legacy.",
+    "subtitle": "Three steps for families: gather what matters, entrust the edit, receive a film worthy of them.",
+    "step1Label": "Gather",
+    "step2Label": "Craft",
+    "step3Label": "Receive",
+    "steps": [
+      {
+        "labelKey": "step1Label",
+        "title": "Your photos, videos, and archives",
+        "body": "You upload what tells their story. We secure every fragment with a clear, respectful structure."
+      },
+      {
+        "labelKey": "step2Label",
+        "title": "The edit takes shape",
+        "body": "We compose rhythm, light, and narrative to honor the family’s emotion and intent."
+      },
+      {
+        "labelKey": "step3Label",
+        "title": "A film meant to be shared",
+        "body": "The film becomes something to pass on: restrained, cinematic, faithful to the dignity of remembrance."
+      }
+    ]
+  },
+  "partnerships": {
+    "kicker": "For funeral professionals",
+    "title": "A cinematic standard for high-trust funeral homes.",
+    "body": "Offer every family a premium remembrance experience that is elegant, reliable, and respectful of grief. Families choose their tribute and tier in the pricing section above.",
+    "cta": "Join as a Partner House"
   }
 }

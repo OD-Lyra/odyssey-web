@@ -5,8 +5,8 @@ import { Languages, LogIn, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import type { Lang } from "../i18n";
 import type { AppDictionary } from "../../lib/dictionaries";
+import type { Locale } from "../../i18n.config";
 
 const MotionLink = motion(Link);
 
@@ -18,7 +18,7 @@ export function Navbar({
   lang,
   dictionary,
 }: {
-  lang: Lang;
+  lang: Locale;
   dictionary: AppDictionary["header"];
 }) {
   const t = dictionary;
@@ -62,7 +62,7 @@ export function Navbar({
 
   const closeMobile = () => setMobileOpen(false);
 
-  const switchLocale = (nextLang: Lang) => {
+  const switchLocale = (nextLang: Locale) => {
     const currentPath = pathname ?? "/";
     const parts = currentPath.split("/").filter(Boolean);
     const rest = parts[0] === "fr" || parts[0] === "en" ? parts.slice(1) : parts;

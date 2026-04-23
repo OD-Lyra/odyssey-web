@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { translations, type Lang } from "../i18n";
+import type { AppDictionary } from "../../lib/dictionaries";
+import type { Locale } from "../../i18n.config";
 import {
   editorialAccentRule,
   editorialColumn,
@@ -14,9 +15,16 @@ import { OdysseyBrandLockup } from "./OdysseyBrandLockup";
 
 const KICKER_DURATION = 0.85;
 
-export function Partnerships({ lang }: { lang: Lang }) {
-  const t = translations[lang].partnerships;
-  const logoFallback = translations[lang].header.logoFallback;
+export function Partnerships({
+  lang,
+  dictionary,
+  logoFallback,
+}: {
+  lang: Locale;
+  dictionary: AppDictionary["partnerships"];
+  logoFallback: AppDictionary["header"]["logoFallback"];
+}) {
+  const t = dictionary;
 
   return (
     <section id="partners" className={`px-6 py-24 md:px-12 md:py-32 ${editorialSectionShell}`}>

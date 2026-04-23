@@ -1,6 +1,6 @@
 import { Navbar } from "@/src/components/Navbar";
-import type { Lang } from "@/src/i18n";
 import { getDictionary } from "@/lib/dictionaries";
+import type { Locale } from "@/i18n.config";
 
 type PageProps = {
   params: Promise<{ lang: string }>;
@@ -8,7 +8,7 @@ type PageProps = {
 
 export default async function IngestionEntryPage({ params }: PageProps) {
   const { lang: routeLang } = await params;
-  const lang: Lang = routeLang === "en" ? "en" : "fr";
+  const lang: Locale = routeLang === "en" ? "en" : "fr";
   const dictionary = await getDictionary(lang);
 
   return (

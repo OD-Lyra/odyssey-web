@@ -2,7 +2,8 @@
 
 import { motion, useInView } from "framer-motion";
 import { Fragment, useMemo, useRef } from "react";
-import { translations, type Lang } from "../i18n";
+import type { AppDictionary } from "../../lib/dictionaries";
+import type { Locale } from "../../i18n.config";
 import {
   editorialAccentRule,
   editorialColumn,
@@ -19,8 +20,14 @@ function splitWords(text: string): string[] {
   return text.trim().split(/\s+/).filter(Boolean);
 }
 
-export function Manifesto({ lang }: { lang: Lang }) {
-  const t = translations[lang].manifesto;
+export function Manifesto({
+  lang,
+  dictionary,
+}: {
+  lang: Locale;
+  dictionary: AppDictionary["manifesto"];
+}) {
+  const t = dictionary;
   const words = useMemo(() => splitWords(t.body), [lang, t.body]);
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, {

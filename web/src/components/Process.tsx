@@ -2,7 +2,8 @@
 
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { translations, type Lang } from "../i18n";
+import type { AppDictionary } from "../../lib/dictionaries";
+import type { Locale } from "../../i18n.config";
 import {
   editorialAccentRule,
   editorialColumn,
@@ -38,7 +39,7 @@ const FILM_GRAIN_CSS = `
   }
 `;
 
-function useDominantStepIndex(stepCount: number, lang: Lang) {
+function useDominantStepIndex(stepCount: number, lang: Locale) {
   const refs = useRef<(HTMLElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -90,8 +91,14 @@ function useDominantStepIndex(stepCount: number, lang: Lang) {
   return { activeIndex, setStepRef };
 }
 
-export function Process({ lang }: { lang: Lang }) {
-  const t = translations[lang].process;
+export function Process({
+  lang,
+  dictionary,
+}: {
+  lang: Locale;
+  dictionary: AppDictionary["process"];
+}) {
+  const t = dictionary;
   const stepCount = t.steps.length;
   const { activeIndex, setStepRef } = useDominantStepIndex(stepCount, lang);
 
@@ -122,6 +129,14 @@ export function Process({ lang }: { lang: Lang }) {
   const stepKeys = useMemo(
     () => t.steps.map((s) => `${lang}-${s.title}`),
     [lang, t.steps],
+  );
+  const stepLabels = useMemo(
+    () => ({
+      step1Label: t.step1Label,
+      step2Label: t.step2Label,
+      step3Label: t.step3Label,
+    }),
+    [t.step1Label, t.step2Label, t.step3Label],
   );
 
   return (
@@ -261,7 +276,7 @@ export function Process({ lang }: { lang: Lang }) {
                     }}
                     className="font-label text-[11px] font-bold uppercase tracking-[0.46em] text-zinc-300"
                   >
-                    {`${String(index + 1).padStart(2, "0")} ${t[step.labelKey]}`}
+                    {`${String(index + 1).padStart(2, "0")} ${stepLabels[step.labelKey as keyof typeof stepLabels]}`}
                   </motion.p>
                   <CinematicWordReveal
                     lang={lang}

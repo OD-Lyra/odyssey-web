@@ -3,7 +3,15 @@
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { translations, type HeroPitchDeck, type Lang } from "../i18n";
+import type { AppDictionary } from "../../lib/dictionaries";
+import type { Locale } from "../../i18n.config";
+
+type HeroPitchDeck = {
+  hooks: string[];
+  steps: string[];
+  memory: string[];
+  signatures: string[];
+};
 
 // CONFIGURATION DES VIDÉOS - Si tu n'as pas encore les fichiers, laisse seulement "/hero.mp4"
 const VIDEOS = [
@@ -17,7 +25,15 @@ function pickRandomLine(pool: readonly string[]): string {
   return pool[Math.floor(Math.random() * pool.length)] ?? pool[0];
 }
 
-export function Hero({ lang }: { lang: Lang }) {
+export function Hero({
+  lang,
+  dictionary,
+  headerNav,
+}: {
+  lang: Locale;
+  dictionary: AppDictionary["hero"];
+  headerNav: AppDictionary["header"]["nav"];
+}) {
   const heroRef = useRef<HTMLElement>(null);
   // "some" + threshold 0: reliable when hero fills the viewport (numeric amount could miss the first paint).
   const heroInView = useInView(heroRef, { amount: "some", once: false });
@@ -31,17 +47,14 @@ export function Hero({ lang }: { lang: Lang }) {
   const [videoIndex, setVideoIndex] = useState(0);
   const [isNarrativeMode, setIsNarrativeMode] = useState(false);
 
-  const pitchDeck = useMemo(
-    () => translations[lang].hero.pitch as HeroPitchDeck,
-    [lang],
-  );
+  const pitchDeck = useMemo(() => dictionary.pitch as HeroPitchDeck, [dictionary.pitch]);
 
-  const menuNav = useMemo(() => translations[lang].header.nav, [lang]);
+  const menuNav = useMemo(() => headerNav, [headerNav]);
 
   const brandFoot = useMemo(() => {
-    const b = translations[lang].hero.branding;
+    const b = dictionary.branding;
     return `${b.line1} ${b.line2}`;
-  }, [lang]);
+  }, [dictionary.branding]);
 
   useEffect(() => {
     setPitchPhase(0);

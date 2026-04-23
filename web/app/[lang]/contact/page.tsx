@@ -1,5 +1,4 @@
 import { Navbar } from "@/src/components/Navbar";
-import type { Lang } from "@/src/i18n";
 import {
   editorialAccentRule,
   editorialColumn,
@@ -13,6 +12,7 @@ import {
 } from "@/src/lib/editorialFormClasses";
 import { OdysseyBrandLockup } from "@/src/components/OdysseyBrandLockup";
 import { getDictionary } from "@/lib/dictionaries";
+import type { Locale } from "@/i18n.config";
 
 type PageProps = {
   params: Promise<{ lang: string }>;
@@ -20,7 +20,7 @@ type PageProps = {
 
 export default async function ContactPage({ params }: PageProps) {
   const { lang: routeLang } = await params;
-  const lang: Lang = routeLang === "en" ? "en" : "fr";
+  const lang: Locale = routeLang === "en" ? "en" : "fr";
   const dictionary = await getDictionary(lang);
   const t = dictionary.contact;
   const logoFallback = dictionary.header.logoFallback;

@@ -2,7 +2,8 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
-import { translations, type Lang } from "../i18n";
+import type { AppDictionary } from "../../lib/dictionaries";
+import type { Locale } from "../../i18n.config";
 import {
   editorialAccentRule,
   editorialColumn,
@@ -23,8 +24,14 @@ const SELECT_TRANSITION = {
 const UV_RADIAL =
   "radial-gradient(circle at 30% 20%, rgba(124,58,237,0.42) 0%, rgba(139,92,246,0.22) 38%, transparent 72%)";
 
-export function Pricing({ lang }: { lang: Lang }) {
-  const t = translations[lang].pricing;
+export function Pricing({
+  lang,
+  dictionary,
+}: {
+  lang: Locale;
+  dictionary: AppDictionary["pricing"];
+}) {
+  const t = dictionary;
   const prefersReducedMotion = useReducedMotion();
   const [selectedTierKey, setSelectedTierKey] = useState<string | null>(null);
 
@@ -78,7 +85,7 @@ export function Pricing({ lang }: { lang: Lang }) {
                     role="button"
                     tabIndex={0}
                     aria-pressed={isSelected}
-                    aria-label={`${t.tierTitles[tier.key]} — ${tier.price}`}
+                    aria-label={`${t.tierTitles[tier.key as keyof typeof t.tierTitles]} — ${tier.price}`}
                     initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
                     whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                     viewport={CINEMATIC_VIEWPORT}
@@ -158,7 +165,7 @@ export function Pricing({ lang }: { lang: Lang }) {
                     <header className="relative">
                       <CinematicWordReveal
                         lang={lang}
-                        text={t.tierTitles[tier.key]}
+                        text={t.tierTitles[tier.key as keyof typeof t.tierTitles]}
                         preset="card"
                         className={
                           isSelected
