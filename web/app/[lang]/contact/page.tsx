@@ -1,8 +1,5 @@
-"use client";
-
-import { FormEvent, useState } from "react";
 import { Navbar } from "@/src/components/Navbar";
-import { translations, type Lang } from "@/src/i18n";
+import type { Lang } from "@/src/i18n";
 import {
   editorialAccentRule,
   editorialColumn,
@@ -15,20 +12,22 @@ import {
   editorialSubmitButton,
 } from "@/src/lib/editorialFormClasses";
 import { OdysseyBrandLockup } from "@/src/components/OdysseyBrandLockup";
+import { getDictionary } from "@/lib/dictionaries";
 
-export default function ContactPage() {
-  const [lang, setLang] = useState<Lang>("fr");
-  const t = translations[lang].contact;
-  const logoFallback = translations[lang].header.logoFallback;
+type PageProps = {
+  params: Promise<{ lang: string }>;
+};
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    // Wire to your API / inbox (Resend, Formspark, etc.).
-  }
+export default async function ContactPage({ params }: PageProps) {
+  const { lang: routeLang } = await params;
+  const lang: Lang = routeLang === "en" ? "en" : "fr";
+  const dictionary = await getDictionary(lang);
+  const t = dictionary.contact;
+  const logoFallback = dictionary.header.logoFallback;
 
   return (
     <main className="min-h-screen bg-[#030303] text-zinc-100 antialiased">
-      <Navbar lang={lang} setLang={setLang} />
+      <Navbar lang={lang} dictionary={dictionary.header} />
       <section className={`mx-auto px-6 pb-28 pt-32 md:px-12 ${editorialSectionShell}`}>
         <div className={`${editorialColumn} md:max-w-[76rem] lg:max-w-[92rem] ${editorialAccentRule}`}>
           <OdysseyBrandLockup wordmark={logoFallback} size="page" className="mb-10 md:mb-12" />
@@ -39,7 +38,7 @@ export default function ContactPage() {
             {t.subtitle}
           </p>
 
-          <form className="mt-14 space-y-10" onSubmit={handleSubmit} noValidate>
+          <form className="mt-14 space-y-10" noValidate>
             <label className="block">
               <span className={editorialFieldLabel}>{t.form.name}</span>
               <input name="name" type="text" autoComplete="name" className={editorialFieldInput} required />

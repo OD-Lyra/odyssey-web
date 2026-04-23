@@ -1,0 +1,50 @@
+{
+  "common": {
+    "welcome": "Welcome to Odyssey"
+  },
+  "header": {
+    "logo": "Odyssey",
+    "logoFallback": "ODYSSEY",
+    "login": "Login",
+    "languageLabel": "Language",
+    "langOptionFr": "FR",
+    "langOptionEn": "EN",
+    "nav": {
+      "home": "Home",
+      "manifesto": "Manifesto",
+      "process": "Process",
+      "pricing": "Pricing",
+      "partners": "Partners",
+      "contact": "Contact"
+    },
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
+    "mainNavAria": "Main navigation"
+  },
+  "contact": {
+    "title": "Write to us",
+    "subtitle": "Questions about a tribute, an ongoing project, or uncertainty before ordering? Tell us where you stand — we respond thoughtfully.",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone (optional)",
+      "subject": "Subject",
+      "message": "Message",
+      "submit": "Send"
+    }
+  },
+  "partnersPage": {
+    "title": "Odyssey partnerships",
+    "subtitle": "Funeral homes, networks, and bereavement professionals: offer families a cinematic remembrance journey. Describe your organization and needs — we’ll explore a tailored rollout.",
+    "form": {
+      "organization": "Organization",
+      "contactName": "Contact name",
+      "email": "Work email",
+      "phone": "Phone",
+      "region": "Region or service area",
+      "context": "Context (volume, team, current tools)",
+      "message": "Your message",
+      "submit": "Submit request"
+    }
+  }
+}

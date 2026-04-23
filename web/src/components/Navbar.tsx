@@ -3,8 +3,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Languages, LogIn, Menu, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { translations, type Lang } from "../i18n";
+import type { Lang } from "../i18n";
+import type { AppDictionary } from "../../lib/dictionaries";
 
 const MotionLink = motion(Link);
 
@@ -14,25 +16,28 @@ const MOBILE_PANEL_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export function Navbar({
   lang,
-  setLang,
+  dictionary,
 }: {
   lang: Lang;
-  setLang: (lang: Lang) => void;
+  dictionary: AppDictionary["header"];
 }) {
-  const t = translations[lang];
+  const t = dictionary;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   const navItems = useMemo(() => {
-    const nav = translations[lang].header.nav;
+    const nav = t.nav;
+    const localeRoot = `/${lang}`;
     return [
-      { href: "/", label: nav.home },
-      { href: "#manifesto", label: nav.manifesto },
-      { href: "#process", label: nav.process },
-      { href: "#pricing", label: nav.pricing },
-      { href: "/partners", label: nav.partners },
-      { href: "/contact", label: nav.contact },
+      { href: `${localeRoot}`, label: nav.home },
+      { href: `${localeRoot}#manifesto`, label: nav.manifesto },
+      { href: `${localeRoot}#process`, label: nav.process },
+      { href: `${localeRoot}#pricing`, label: nav.pricing },
+      { href: `${localeRoot}/partners`, label: nav.partners },
+      { href: `${localeRoot}/contact`, label: nav.contact },
     ] as const;
-  }, [lang]);
+  }, [lang, t.nav]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -57,6 +62,15 @@ export function Navbar({
 
   const closeMobile = () => setMobileOpen(false);
 
+  const switchLocale = (nextLang: Lang) => {
+    const currentPath = pathname ?? "/";
+    const parts = currentPath.split("/").filter(Boolean);
+    const rest = parts[0] === "fr" || parts[0] === "en" ? parts.slice(1) : parts;
+    const nextPath = `/${nextLang}${rest.length > 0 ? `/${rest.join("/")}` : ""}`;
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+    router.push(`${nextPath}${hash}`);
+  };
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -12 }}
@@ -71,8 +85,8 @@ export function Navbar({
     >
       <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-3 sm:gap-6 sm:px-5 sm:py-4 md:px-10">
         <MotionLink
-          href="/"
-          aria-label={t.header.logo}
+          href={`/${lang}`}
+          aria-label={t.logo}
           onClick={closeMobile}
           className="group flex min-w-0 flex-1 items-center gap-2.5 text-[11px] font-light uppercase tracking-[0.38em] text-zinc-400 transition-colors duration-300 hover:text-violet-300 sm:gap-3 md:flex-none touch-manipulation"
           whileHover={{ scale: 1.02 }}
@@ -89,14 +103,14 @@ export function Navbar({
               className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 min-w-[250%] h-[300%] max-w-none object-cover mix-blend-screen opacity-20 pointer-events-none transition-all duration-1000 ease-out group-hover/odyssey:opacity-40 group-hover/odyssey:scale-110"
             />
             <span className="relative z-[1] font-brand truncate text-[clamp(0.8125rem,3.2vw,1.4375rem)] font-light uppercase leading-none tracking-[0.48em] text-zinc-300 transition-colors duration-300 group-hover:text-violet-200 sm:tracking-[0.55em] md:text-[23px] md:tracking-[0.62em]">
-              {t.header.logoFallback}
+              {t.logoFallback}
             </span>
           </span>
         </MotionLink>
 
         <nav
           className="font-label hidden items-center gap-4 lg:gap-7 xl:gap-8 md:flex"
-          aria-label={t.header.mainNavAria}
+          aria-label={t.mainNavAria}
         >
           {navItems.map(({ href, label }) => (
             <MotionLink
@@ -116,7 +130,7 @@ export function Navbar({
           <div
             className="group/lang flex items-center gap-1 border border-zinc-800 bg-zinc-950/80 p-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors duration-300 hover:border-purple-500/35 touch-manipulation"
             role="group"
-            aria-label={t.header.languageLabel}
+            aria-label={t.languageLabel}
           >
             <Languages
               className="mx-1 h-3.5 w-3.5 text-zinc-600 transition-colors duration-300 group-hover/lang:text-violet-400"
@@ -124,7 +138,7 @@ export function Navbar({
             />
             <motion.button
               type="button"
-              onClick={() => setLang("fr")}
+              onClick={() => switchLocale("fr")}
               className={`min-h-[40px] min-w-[36px] origin-center px-2 py-1 transition-colors duration-300 sm:min-h-0 sm:min-w-0 ${
                 lang === "fr"
                   ? "text-violet-300 hover:text-violet-200"
@@ -135,14 +149,14 @@ export function Navbar({
               whileTap={{ scale: 0.95 }}
               transition={menuSpring}
             >
-              {t.header.langOptionFr}
+              {t.langOptionFr}
             </motion.button>
             <span className="text-zinc-700 transition-colors duration-300 group-hover/lang:text-purple-600/70" aria-hidden>
               /
             </span>
             <motion.button
               type="button"
-              onClick={() => setLang("en")}
+              onClick={() => switchLocale("en")}
               className={`min-h-[40px] min-w-[36px] origin-center px-2 py-1 transition-colors duration-300 sm:min-h-0 sm:min-w-0 ${
                 lang === "en"
                   ? "text-violet-300 hover:text-violet-200"
@@ -153,12 +167,12 @@ export function Navbar({
               whileTap={{ scale: 0.95 }}
               transition={menuSpring}
             >
-              {t.header.langOptionEn}
+              {t.langOptionEn}
             </motion.button>
           </div>
 
           <MotionLink
-            href="/contact"
+            href={`/${lang}/contact`}
             className="font-label group hidden min-h-[44px] items-center gap-2 text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-400 transition-colors duration-300 hover:text-violet-300 sm:inline-flex sm:text-[11px] touch-manipulation"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
@@ -169,7 +183,7 @@ export function Navbar({
               strokeWidth={1.5}
               aria-hidden
             />
-            <span className="underline-offset-4 transition-all group-hover:underline">{t.header.login}</span>
+            <span className="underline-offset-4 transition-all group-hover:underline">{t.login}</span>
           </MotionLink>
 
           <motion.button
@@ -177,7 +191,7 @@ export function Navbar({
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-zinc-800 bg-zinc-950/80 text-zinc-300 transition-colors hover:border-purple-500/45 hover:text-violet-200 md:hidden touch-manipulation"
             aria-expanded={mobileOpen}
             aria-controls="mobile-primary-nav"
-            aria-label={mobileOpen ? t.header.menuClose : t.header.menuOpen}
+            aria-label={mobileOpen ? t.menuClose : t.menuOpen}
             onClick={() => setMobileOpen((o) => !o)}
             whileTap={{ scale: 0.96 }}
           >
@@ -198,7 +212,7 @@ export function Navbar({
           >
             <nav
               id="mobile-primary-nav"
-              aria-label={t.header.mainNavAria}
+              aria-label={t.mainNavAria}
               className="flex flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-1"
             >
               {navItems.map(({ href, label }) => (
@@ -213,13 +227,13 @@ export function Navbar({
                 </MotionLink>
               ))}
               <MotionLink
-                href="/contact"
+                href={`/${lang}/contact`}
                 onClick={closeMobile}
                 className="mt-2 flex min-h-[48px] items-center gap-2 border border-zinc-800 bg-zinc-950/60 px-3 py-3 text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-300 touch-manipulation"
                 whileTap={{ scale: 0.99 }}
               >
                 <LogIn className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.5} aria-hidden />
-                {t.header.login}
+                {t.login}
               </MotionLink>
             </nav>
           </motion.div>

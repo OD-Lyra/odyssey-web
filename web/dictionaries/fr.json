@@ -1,0 +1,50 @@
+{
+  "common": {
+    "welcome": "Bienvenue sur Odyssey"
+  },
+  "header": {
+    "logo": "Odyssey",
+    "logoFallback": "ODYSSEY",
+    "login": "Connexion",
+    "languageLabel": "Langue",
+    "langOptionFr": "FR",
+    "langOptionEn": "EN",
+    "nav": {
+      "home": "Accueil",
+      "manifesto": "Notre manifeste",
+      "process": "Processus",
+      "pricing": "Forfaits",
+      "partners": "Partenaires",
+      "contact": "Contact"
+    },
+    "menuOpen": "Ouvrir le menu",
+    "menuClose": "Fermer le menu",
+    "mainNavAria": "Navigation principale"
+  },
+  "contact": {
+    "title": "Nous écrire",
+    "subtitle": "Une question sur un hommage, un projet en cours ou un doute avant de commander ? Décrivez votre situation — nous vous répondons avec attention.",
+    "form": {
+      "name": "Nom",
+      "email": "Courriel",
+      "phone": "Téléphone (optionnel)",
+      "subject": "Sujet",
+      "message": "Message",
+      "submit": "Envoyer"
+    }
+  },
+  "partnersPage": {
+    "title": "Partenariat Odyssey",
+    "subtitle": "Maisons funéraires, réseaux et accompagnants : proposez à vos familles une expérience de mémoire cinématographique. Décrivez votre structure et vos besoins — nous étudions un déploiement adapté.",
+    "form": {
+      "organization": "Maison ou organisation",
+      "contactName": "Nom du contact",
+      "email": "Courriel professionnel",
+      "phone": "Téléphone",
+      "region": "Région ou bassin desservi",
+      "context": "Contexte (volume, équipe, outils actuels)",
+      "message": "Votre message",
+      "submit": "Envoyer la demande"
+    }
+  }
+}
