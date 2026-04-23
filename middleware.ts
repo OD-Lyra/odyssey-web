@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const locales = ["fr", "en"] as const;
-const defaultLocale = "fr" as const;
-type Locale = (typeof locales)[number];
+const locales = ["fr", "en"];
+const defaultLocale = "fr";
 
-function getLocaleFromHeader(request: NextRequest): Locale {
+function getLocaleFromHeader(request: NextRequest) {
   const header = request.headers.get("accept-language")?.toLowerCase() ?? "";
   const preferred = header
     .split(",")
@@ -12,8 +11,8 @@ function getLocaleFromHeader(request: NextRequest): Locale {
     .map((code) => code.split("-")[0]);
 
   for (const candidate of preferred) {
-    if (locales.includes(candidate as Locale)) {
-      return candidate as Locale;
+    if (locales.includes(candidate)) {
+      return candidate;
     }
   }
 
