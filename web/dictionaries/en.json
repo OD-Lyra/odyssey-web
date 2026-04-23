@@ -2,6 +2,10 @@
   "common": {
     "welcome": "Welcome to Odyssey"
   },
+  "seo": {
+    "title": "Odyssey | Premium automated cinematic memorial videos",
+    "description": "Odyssey is a premium platform for automated cinematic commemorative video creation to preserve, share, and honor memory."
+  },
   "header": {
     "logo": "Odyssey",
     "logoFallback": "ODYSSEY",

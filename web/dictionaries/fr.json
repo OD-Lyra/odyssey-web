@@ -2,6 +2,10 @@
   "common": {
     "welcome": "Bienvenue sur Odyssey"
   },
+  "seo": {
+    "title": "Odyssey | Hommages cinématographiques automatisés premium",
+    "description": "Odyssey est une plateforme premium de création automatique de vidéos commémoratives cinématographiques pour préserver, transmettre et honorer la mémoire."
+  },
   "header": {
     "logo": "Odyssey",
     "logoFallback": "ODYSSEY",
