@@ -1,3 +1,4 @@
+console.log(">>> VERCEL EXECUTION CHECK - ERIK 13:40 <<<");
 import { NextRequest, NextResponse } from "next/server";
 
 const locales = ["fr", "en"];
