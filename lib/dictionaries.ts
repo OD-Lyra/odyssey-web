@@ -1,13 +1,14 @@
-import { i18n, type Locale } from "../i18n.config";
+import type { Locale } from '@/i18n.config';
 
+// On utilise l'import dynamique, Vercel adore ça et ça ne plante jamais
 const dictionaries = {
-  fr: () => import("../dictionaries/fr.json").then((module) => module.default),
-  en: () => import("../dictionaries/en.json").then((module) => module.default),
-} as const;
+  en: () => import('../dictionaries/en.json').then((module) => module.default),
+  fr: () => import('../dictionaries/fr.json').then((module) => module.default),
+};
 
-export type AppDictionary = Awaited<ReturnType<(typeof dictionaries)["fr"]>>;
+export const getDictionary = async (locale: Locale) => {
+  // Fallback sur le français si la locale n'est pas trouvée
+  return dictionaries[locale]?.() ?? dictionaries.fr();
+};
 
-export async function getDictionary(locale: Locale) {
-  const safeLocale = i18n.locales.includes(locale) ? locale : i18n.defaultLocale;
-  return dictionaries[safeLocale]();
-}
+export type AppDictionary = Awaited<ReturnType<typeof dictionaries.fr>>;
