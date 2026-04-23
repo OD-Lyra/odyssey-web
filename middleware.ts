@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { i18n } from "./i18n.config";
 
-function getLocaleFromHeader(request: NextRequest): (typeof i18n.locales)[number] {
+const locales = ["fr", "en"] as const;
+const defaultLocale = "fr" as const;
+type Locale = (typeof locales)[number];
+
+function getLocaleFromHeader(request: NextRequest): Locale {
   const header = request.headers.get("accept-language")?.toLowerCase() ?? "";
   const preferred = header
     .split(",")
@@ -9,18 +12,18 @@ function getLocaleFromHeader(request: NextRequest): (typeof i18n.locales)[number
     .map((code) => code.split("-")[0]);
 
   for (const candidate of preferred) {
-    if (i18n.locales.includes(candidate as (typeof i18n.locales)[number])) {
-      return candidate as (typeof i18n.locales)[number];
+    if (locales.includes(candidate as Locale)) {
+      return candidate as Locale;
     }
   }
 
-  return i18n.defaultLocale;
+  return defaultLocale;
 }
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const hasLocale = i18n.locales.some(
+  const hasLocale = locales.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
   );
 
