@@ -1,31 +1,42 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { translations, type Lang } from "../i18n";
+import {
+  editorialAccentRule,
+  editorialColumn,
+  editorialSectionShell,
+} from "../lib/editorialSkin";
 import { LOCOMOTIVE_EASE, CINEMATIC_VIEWPORT } from "../lib/cinematicMotion";
 import { CinematicWordReveal } from "./CinematicWordReveal";
+import { OdysseyBrandLockup } from "./OdysseyBrandLockup";
 
 const KICKER_DURATION = 0.85;
 
 export function Partnerships({ lang }: { lang: Lang }) {
   const t = translations[lang].partnerships;
+  const logoFallback = translations[lang].header.logoFallback;
 
   return (
-    <section id="partners" className="bg-zinc-950 px-6 py-20 md:px-12 md:py-28">
-      <motion.div
-        initial={{ opacity: 0, y: 28, filter: "blur(10px)" }}
-        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        viewport={CINEMATIC_VIEWPORT}
-        transition={{ duration: 1.1, ease: LOCOMOTIVE_EASE }}
-        className="mx-auto max-w-6xl border border-white/10 bg-black/30 p-8 md:p-12"
-      >
+    <section id="partners" className={`px-6 py-24 md:px-12 md:py-32 ${editorialSectionShell}`}>
+      <div className={`${editorialColumn} md:max-w-[76rem] lg:max-w-[92rem] ${editorialAccentRule}`}>
         <div key={lang}>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={CINEMATIC_VIEWPORT}
+            transition={{ duration: 0.65, ease: LOCOMOTIVE_EASE }}
+            className="mb-10 md:mb-12"
+          >
+            <OdysseyBrandLockup wordmark={logoFallback} size="section" />
+          </motion.div>
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={CINEMATIC_VIEWPORT}
             transition={{ duration: KICKER_DURATION, ease: LOCOMOTIVE_EASE }}
-            className="font-label text-[10px] uppercase tracking-[0.5em] text-zinc-500"
+            className="font-label text-[16px] font-bold uppercase tracking-[0.46em] text-zinc-300"
           >
             {t.kicker}
           </motion.p>
@@ -33,31 +44,31 @@ export function Partnerships({ lang }: { lang: Lang }) {
             lang={lang}
             text={t.title}
             preset="section"
-            className="font-editorial mt-6 max-w-3xl text-3xl tracking-tight text-white antialiased md:text-5xl"
+            className="font-editorial mt-6 text-3xl tracking-tight text-white antialiased md:text-4xl lg:text-[2.75rem]"
           />
           <CinematicWordReveal
             lang={lang}
             text={t.body}
             preset="card"
-            className="font-label mt-5 max-w-2xl text-sm leading-relaxed text-zinc-400 md:text-base"
+            className="font-label mt-6 text-sm leading-[1.75] text-zinc-400 md:text-base"
           />
 
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={CINEMATIC_VIEWPORT}
-            transition={{ duration: 0.8, ease: LOCOMOTIVE_EASE, delay: 0.15 }}
-            className="mt-10"
+            transition={{ duration: 0.75, ease: LOCOMOTIVE_EASE, delay: 0.12 }}
+            className="mt-12"
           >
-            <button
-              type="button"
-              className="font-label border border-purple-500/50 bg-purple-500/10 px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.42em] text-white transition-all duration-300 hover:border-purple-400 hover:bg-purple-500/20 hover:shadow-[0_0_30px_rgba(168,85,247,0.35)]"
+            <Link
+              href="/partners"
+              className="font-label inline-flex border border-white/15 bg-transparent px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.42em] text-white transition-colors duration-300 hover:border-violet-500/45 hover:text-violet-100 touch-manipulation"
             >
               {t.cta}
-            </button>
+            </Link>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

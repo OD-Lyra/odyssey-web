@@ -1,5 +1,9 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+"use client";
+
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import Link from "next/link";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { translations, type HeroPitchDeck, type Lang } from "../i18n";
 
 // CONFIGURATION DES VIDÉOS - Si tu n'as pas encore les fichiers, laisse seulement "/hero.mp4"
 const VIDEOS = [
@@ -8,26 +12,104 @@ const VIDEOS = [
   "/reel-03.mp4"
 ];
 
-const PITCH_PHRASES = [
-  "CRÉEZ LA VIDÉO DE LEUR VIE",
-  "EN 3 ÉTAPES SIMPLES",
-  "L'ALGORITHME AU SERVICE DE L'ÉMOTION",
-  "L'EXCELLENCE CINÉMATOGRAPHIQUE"
-];
+function pickRandomLine(pool: readonly string[]): string {
+  if (pool.length === 0) return "";
+  return pool[Math.floor(Math.random() * pool.length)] ?? pool[0];
+}
 
-export function Hero() {
-  const [index, setIndex] = useState(0);
+export function Hero({ lang }: { lang: Lang }) {
+  const heroRef = useRef<HTMLElement>(null);
+  // "some" + threshold 0: reliable when hero fills the viewport (numeric amount could miss the first paint).
+  const heroInView = useInView(heroRef, { amount: "some", once: false });
+
+  const pitchStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevHeroInViewRef = useRef<boolean | undefined>(undefined);
+  const userLeftHeroRef = useRef(false);
+
+  const [pitchPhase, setPitchPhase] = useState(0);
+  const [pitchLine, setPitchLine] = useState("");
   const [videoIndex, setVideoIndex] = useState(0);
   const [isNarrativeMode, setIsNarrativeMode] = useState(false);
 
+  const pitchDeck = useMemo(
+    () => translations[lang].hero.pitch as HeroPitchDeck,
+    [lang],
+  );
+
+  const menuNav = useMemo(() => translations[lang].header.nav, [lang]);
+
+  const brandFoot = useMemo(() => {
+    const b = translations[lang].hero.branding;
+    return `${b.line1} ${b.line2}`;
+  }, [lang]);
+
   useEffect(() => {
-    // 1. On garde le titre 3.5s avant de lancer le pitch
-    const startPitch = setTimeout(() => setIsNarrativeMode(true), 3500);
-    const timer = setInterval(() => {
-      if (isNarrativeMode) setIndex((prev) => (prev + 1) % PITCH_PHRASES.length);
-    }, 5000);
-    return () => { clearTimeout(startPitch); clearInterval(timer); };
+    setPitchPhase(0);
+  }, [lang]);
+
+  useLayoutEffect(() => {
+    if (!isNarrativeMode) return;
+    const pools: readonly (readonly string[])[] = [
+      pitchDeck.hooks,
+      pitchDeck.steps,
+      pitchDeck.memory,
+      pitchDeck.signatures,
+    ];
+    const pool = pools[pitchPhase % 4] ?? pitchDeck.hooks;
+    setPitchLine(pickRandomLine(pool));
+  }, [pitchPhase, isNarrativeMode, pitchDeck]);
+
+  const clearPitchStartTimeout = () => {
+    if (pitchStartTimeoutRef.current !== null) {
+      clearTimeout(pitchStartTimeoutRef.current);
+      pitchStartTimeoutRef.current = null;
+    }
+  };
+
+  const schedulePitchStart = () => {
+    clearPitchStartTimeout();
+    pitchStartTimeoutRef.current = setTimeout(() => setIsNarrativeMode(true), 3500);
+  };
+
+  // Same as original: pitch delay follows mount / language change (do not gate on useInView — see scroll effect).
+  useEffect(() => {
+    schedulePitchStart();
+    return clearPitchStartTimeout;
+  }, [lang]);
+
+  useEffect(() => {
+    if (!isNarrativeMode) return;
+    const timer = setInterval(() => setPitchPhase((p) => (p + 1) % 4), 5000);
+    return () => clearInterval(timer);
   }, [isNarrativeMode]);
+
+  /**
+   * useInView starts false until the observer runs; resetting narrative on that first `false`
+   * cleared the 3.5s timeout and blocked pitch + branding transitions. Only treat `false` as
+   * "user left the hero" after we have observed a transition from visible -> not visible.
+   */
+  useEffect(() => {
+    const prev = prevHeroInViewRef.current;
+    prevHeroInViewRef.current = heroInView;
+
+    if (prev === undefined) {
+      return;
+    }
+
+    if (prev && !heroInView) {
+      userLeftHeroRef.current = true;
+      clearPitchStartTimeout();
+      setIsNarrativeMode(false);
+      setPitchPhase(0);
+      setPitchLine("");
+      return;
+    }
+
+    if (!prev && heroInView && userLeftHeroRef.current) {
+      userLeftHeroRef.current = false;
+      schedulePitchStart();
+    }
+  }, [heroInView]);
 
   useEffect(() => {
     // 2. On change de vidéo toutes le 12s (Seulement s'il y en a plus d'une)
@@ -41,7 +123,11 @@ export function Hero() {
   const locomotiveEase = [0.16, 1, 0.3, 1];
 
   return (
-    <section className="relative w-full h-screen bg-[#020202] overflow-hidden select-none" style={{ isolation: 'isolate' }}>
+    <section
+      ref={heroRef}
+      className="relative w-full h-screen bg-[#020202] overflow-hidden select-none"
+      style={{ isolation: "isolate" }}
+    >
       
       <style dangerouslySetInnerHTML={{ __html: `
         .grain-engine::before {
@@ -113,15 +199,16 @@ export function Hero() {
         <AnimatePresence mode="wait">
           {isNarrativeMode && (
             <motion.div
-              key={index}
+              key={`${lang}-${pitchPhase}-${pitchLine}`}
               initial={{ opacity: 0, filter: "blur(20px)", y: 25 }}
               animate={{ opacity: 1, filter: "blur(0px)", y: -60 }}
               exit={{ opacity: 0, filter: "blur(20px)", y: -80 }}
               transition={{ duration: 1.8, ease: locomotiveEase }}
             >
-              <h2 className="vibrant-halo text-[5vw] md:text-[3.5vw] font-bold uppercase tracking-[0.8em] leading-tight max-w-[85vw]" style={{ opacity: 0.5 }}>
-                {PITCH_PHRASES[index]}
-              </h2>
+              <PitchLine
+                phrase={pitchLine || pitchDeck.hooks[0]}
+                phase={pitchPhase % 4}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -132,21 +219,49 @@ export function Hero() {
       {/* LAYER 10 : NAVIGATION BASSE */}
       <div className="absolute inset-0 z-[100] flex flex-col justify-end p-10 md:p-24 pointer-events-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-20 w-full">
-          <div className="flex flex-col gap-5 items-start">
-            <NavItem label="CHAPTER 01" delay={1.2} />
-            <NavItem label="ULTRAVIOLET CUT" delay={1.3} isWhite />
-            <span className="text-[10px] md:text-[11px] font-medium uppercase tracking-[0.5em] text-zinc-600">Y26</span>
+          <div className="flex flex-col gap-5 items-start md:-translate-x-1 md:translate-y-2 md:rotate-[-0.4deg]">
+            <NavItem href="/" label={menuNav.home} delay={1.2} itemClass="md:translate-x-2" />
+            <NavItem
+              href="#manifesto"
+              label={menuNav.manifesto}
+              delay={1.3}
+              isWhite
+              itemClass="-translate-y-0.5 md:-translate-x-1"
+            />
+            <Link
+              href="/"
+              className="text-[10px] md:text-[11px] font-medium uppercase tracking-[0.5em] text-zinc-600 transition-colors duration-300 hover:text-zinc-400 md:translate-x-3"
+            >
+              {brandFoot}
+            </Link>
           </div>
-          <div className="flex flex-col items-start pt-2.5">
-            <NavItem label="FILM" delay={1.4} />
+          <div className="flex flex-col items-start pt-2.5 md:translate-x-4 md:-translate-y-1 md:rotate-[0.6deg]">
+            <NavItem href="#process" label={menuNav.process} delay={1.4} itemClass="md:-translate-x-1" />
+            <NavItem href="#pricing" label={menuNav.pricing} delay={1.45} itemClass="md:mt-2 md:-translate-x-1" />
           </div>
-          <div className="flex flex-col gap-5 items-start">
-            <NavItem label="ODYSSEY ENGINE" delay={1.5} />
-            <NavItem label="EMOTIONAL ALGORITHM" delay={1.6} isWhite />
-            <span className="text-[10px] md:text-[11px] font-medium uppercase tracking-[0.5em] text-zinc-600">Y26</span>
+          <div className="flex flex-col gap-5 items-start md:translate-x-1 md:-translate-y-3 md:rotate-[0.35deg]">
+            <NavItem
+              href="#partners"
+              label={menuNav.partners}
+              delay={1.5}
+              itemClass="md:translate-x-2 md:translate-y-1"
+            />
+            <NavItem
+              href="#manifesto"
+              label={menuNav.manifesto}
+              delay={1.6}
+              isWhite
+              itemClass="-translate-x-1 md:translate-y-2"
+            />
+            <Link
+              href="/"
+              className="text-[10px] md:text-[11px] font-medium uppercase tracking-[0.5em] text-zinc-600 transition-colors duration-300 hover:text-zinc-400 md:-translate-x-2"
+            >
+              {brandFoot}
+            </Link>
           </div>
-          <div className="flex flex-col items-start pt-2.5">
-            <NavItem label="FILM" delay={1.7} />
+          <div className="flex flex-col items-start pt-2.5 md:-translate-x-2 md:translate-y-4 md:rotate-[-0.55deg]">
+            <NavItem href="/contact" label={menuNav.contact} delay={1.7} itemClass="md:translate-x-1" />
           </div>
         </div>
       </div>
@@ -155,13 +270,46 @@ export function Hero() {
   );
 }
 
-function NavItem({ label, delay, isWhite = false }: { label: string, delay: number, isWhite?: boolean }) {
+function PitchLine({ phrase, phase }: { phrase: string; phase: number }) {
+  const isHook = phase === 0;
+  const isSignature = phase === 3;
   return (
-    <div className="relative py-2 px-4 -ml-4 overflow-visible">
+    <h2
+      className={[
+        "vibrant-halo max-w-[90vw] text-[4.5vw] font-bold uppercase leading-[1.15] sm:max-w-[88vw] sm:text-[4vw] md:max-w-[85vw] md:text-[3.25vw]",
+        isSignature
+          ? "tracking-[0.44em] sm:tracking-[0.56em] md:tracking-[0.72em]"
+          : "tracking-[0.38em] sm:tracking-[0.48em] md:tracking-[0.58em]",
+      ].join(" ")}
+      style={{ opacity: isHook ? 0.68 : 0.5 }}
+    >
+      {phrase}
+    </h2>
+  );
+}
+
+function NavItem({
+  href,
+  label,
+  delay,
+  isWhite = false,
+  itemClass = "",
+}: {
+  href: string;
+  label: string;
+  delay: number;
+  isWhite?: boolean;
+  itemClass?: string;
+}) {
+  return (
+    <div className={`relative py-2 px-4 -ml-4 overflow-visible ${itemClass}`}>
       <motion.div initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1], delay }}>
-        <span className={`neon-vivid inline-block text-[12px] md:text-[14px] font-bold uppercase tracking-[0.5em] transition-all duration-700 ease-out cursor-text select-text ${isWhite ? 'text-white' : 'text-zinc-500'}`}>
+        <Link
+          href={href}
+          className={`neon-vivid inline-block text-[12px] md:text-[14px] font-bold uppercase tracking-[0.5em] transition-all duration-700 ease-out cursor-pointer select-none ${isWhite ? "text-white" : "text-zinc-500"}`}
+        >
           {label}
-        </span>
+        </Link>
       </motion.div>
     </div>
   );

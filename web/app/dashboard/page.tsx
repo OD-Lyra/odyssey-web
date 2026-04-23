@@ -5,7 +5,7 @@ export default function DashboardPage() {
         Dashboard
       </h1>
       <p className="mt-6 text-sm text-white/60">
-        Customer project status — placeholder.
+        Customer project status. Placeholder.
       </p>
     </main>
   );

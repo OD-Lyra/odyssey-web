@@ -5,7 +5,7 @@ export default function AuthPage() {
         Auth
       </h1>
       <p className="mt-6 text-sm text-white/60">
-        Login / Signup (Supabase Auth) — placeholder.
+        Login / Signup (Supabase Auth). Placeholder.
       </p>
     </main>
   );

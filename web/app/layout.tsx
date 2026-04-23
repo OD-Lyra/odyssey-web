@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat, Playfair_Display } from "next/font/google";
 import type { ReactNode } from "react";
 
@@ -18,12 +18,19 @@ const labelFont = Inter({
 const brandFont = Montserrat({
   subsets: ["latin"],
   variable: "--font-brand",
-  weight: ["600", "700", "800"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "Odyssey",
-  description: "Odyssey — Emotional video engine",
+  description: "Odyssey, emotional video engine",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#030303",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

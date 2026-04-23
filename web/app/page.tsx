@@ -13,9 +13,9 @@ export default function HomePage() {
   const [lang, setLang] = useState<Lang>("fr");
 
   return (
-    <main className="min-h-screen bg-black text-zinc-100 antialiased">
+    <main className="min-h-screen bg-[#030303] text-zinc-100 antialiased">
       <Navbar lang={lang} setLang={setLang} />
-      <Hero />
+      <Hero lang={lang} />
       <Manifesto lang={lang} />
       <Process lang={lang} />
       <Pricing lang={lang} />

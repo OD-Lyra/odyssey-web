@@ -16,14 +16,14 @@ import {
 } from "@/src/lib/editorialFormClasses";
 import { OdysseyBrandLockup } from "@/src/components/OdysseyBrandLockup";
 
-export default function ContactPage() {
+export default function PartnersPage() {
   const [lang, setLang] = useState<Lang>("fr");
-  const t = translations[lang].contact;
+  const t = translations[lang].partnersPage;
   const logoFallback = translations[lang].header.logoFallback;
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Wire to your API / inbox (Resend, Formspark, etc.).
+    // Wire to your API / CRM (e.g. webhook, email service).
   }
 
   return (
@@ -41,8 +41,19 @@ export default function ContactPage() {
 
           <form className="mt-14 space-y-10" onSubmit={handleSubmit} noValidate>
             <label className="block">
-              <span className={editorialFieldLabel}>{t.form.name}</span>
-              <input name="name" type="text" autoComplete="name" className={editorialFieldInput} required />
+              <span className={editorialFieldLabel}>{t.form.organization}</span>
+              <input
+                name="organization"
+                type="text"
+                autoComplete="organization"
+                className={editorialFieldInput}
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className={editorialFieldLabel}>{t.form.contactName}</span>
+              <input name="contactName" type="text" autoComplete="name" className={editorialFieldInput} required />
             </label>
 
             <label className="block">
@@ -56,8 +67,13 @@ export default function ContactPage() {
             </label>
 
             <label className="block">
-              <span className={editorialFieldLabel}>{t.form.subject}</span>
-              <input name="subject" type="text" className={editorialFieldInput} required />
+              <span className={editorialFieldLabel}>{t.form.region}</span>
+              <input name="region" type="text" autoComplete="address-level1" className={editorialFieldInput} />
+            </label>
+
+            <label className="block">
+              <span className={editorialFieldLabel}>{t.form.context}</span>
+              <textarea name="context" rows={3} className={editorialFieldTextarea} />
             </label>
 
             <label className="block">

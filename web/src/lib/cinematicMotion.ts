@@ -7,7 +7,7 @@ export const CINEMATIC_IN_VIEW = {
   amount: 0.2 as const,
 };
 
-/** `whileInView` on motion nodes — slightly looser than word blocks for large surfaces. */
+/** `whileInView` on motion nodes: slightly looser than word blocks for large surfaces. */
 export const CINEMATIC_VIEWPORT = {
   once: true as const,
   margin: "-10% 0px" as const,

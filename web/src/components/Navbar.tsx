@@ -1,9 +1,16 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Clapperboard, Languages, LogIn } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Languages, LogIn, Menu, X } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { translations, type Lang } from "../i18n";
+
+const MotionLink = motion(Link);
+
+const menuSpring = { type: "spring" as const, stiffness: 420, damping: 24 };
+
+const MOBILE_PANEL_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export function Navbar({
   lang,
@@ -13,100 +20,211 @@ export function Navbar({
   setLang: (lang: Lang) => void;
 }) {
   const t = translations[lang];
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navItems = useMemo(() => {
+    const nav = translations[lang].header.nav;
+    return [
+      { href: "/", label: nav.home },
+      { href: "#manifesto", label: nav.manifesto },
+      { href: "#process", label: nav.process },
+      { href: "#pricing", label: nav.pricing },
+      { href: "/partners", label: nav.partners },
+      { href: "/contact", label: nav.contact },
+    ] as const;
+  }, [lang]);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [lang]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
+  const closeMobile = () => setMobileOpen(false);
 
   return (
     <motion.header
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.7, ease: MOBILE_PANEL_EASE }}
       className="font-label fixed left-0 right-0 top-0 z-50 border-b border-zinc-900/80 bg-black/70 backdrop-blur-md"
+      style={{
+        paddingLeft: "max(0px, env(safe-area-inset-left))",
+        paddingRight: "max(0px, env(safe-area-inset-right))",
+        paddingTop: "max(0px, env(safe-area-inset-top))",
+      }}
     >
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-6 px-5 py-4 md:px-10">
-        <Link
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-3 sm:gap-6 sm:px-5 sm:py-4 md:px-10">
+        <MotionLink
           href="/"
-          className="group flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.28em] text-zinc-400 transition-colors hover:text-zinc-200"
+          aria-label={t.header.logo}
+          onClick={closeMobile}
+          className="group flex min-w-0 flex-1 items-center gap-2.5 text-[11px] font-light uppercase tracking-[0.38em] text-zinc-400 transition-colors duration-300 hover:text-violet-300 sm:gap-3 md:flex-none touch-manipulation"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          transition={menuSpring}
         >
-          <span className="flex h-10 w-10 items-center justify-center border border-zinc-800 bg-zinc-950 text-zinc-300 transition-colors group-hover:border-zinc-600">
-            <Clapperboard className="h-4 w-4" strokeWidth={1.25} aria-hidden />
+          <span className="relative -ml-3 inline-flex items-center group/odyssey">
+            <video
+              src="/eclipse.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 min-w-[250%] h-[300%] max-w-none object-cover mix-blend-screen opacity-20 pointer-events-none transition-all duration-1000 ease-out group-hover/odyssey:opacity-40 group-hover/odyssey:scale-110"
+            />
+            <span className="relative z-[1] font-brand truncate text-[clamp(0.8125rem,3.2vw,1.4375rem)] font-light uppercase leading-none tracking-[0.48em] text-zinc-300 transition-colors duration-300 group-hover:text-violet-200 sm:tracking-[0.55em] md:text-[23px] md:tracking-[0.62em]">
+              {t.header.logoFallback}
+            </span>
           </span>
-          <span className="font-brand hidden text-[18px] font-bold uppercase tracking-[0.32em] text-zinc-100 sm:inline">
-            {t.header.logoFallback}
-          </span>
-        </Link>
+        </MotionLink>
 
-        <nav className="font-label hidden items-center gap-8 md:flex">
-          <Link
-            href="/"
-            className="text-[10px] uppercase tracking-[0.3em] text-zinc-400 transition-colors hover:text-white"
-          >
-            {t.header.nav.home}
-          </Link>
-          <Link
-            href="#manifesto"
-            className="text-[10px] uppercase tracking-[0.3em] text-zinc-400 transition-colors hover:text-white"
-          >
-            {t.header.nav.manifesto}
-          </Link>
-          <Link
-            href="#process"
-            className="text-[10px] uppercase tracking-[0.3em] text-zinc-400 transition-colors hover:text-white"
-          >
-            {t.header.nav.process}
-          </Link>
-          <Link
-            href="#partners"
-            className="text-[10px] uppercase tracking-[0.3em] text-zinc-400 transition-colors hover:text-white"
-          >
-            {t.header.nav.contact}
-          </Link>
+        <nav
+          className="font-label hidden items-center gap-4 lg:gap-7 xl:gap-8 md:flex"
+          aria-label={t.header.mainNavAria}
+        >
+          {navItems.map(({ href, label }) => (
+            <MotionLink
+              key={href + label}
+              href={href}
+              className="inline-block origin-center text-[10px] uppercase tracking-[0.3em] text-zinc-400 transition-colors duration-300 hover:text-violet-300 touch-manipulation"
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.97 }}
+              transition={menuSpring}
+            >
+              {label}
+            </MotionLink>
+          ))}
         </nav>
 
-        <div className="flex items-center gap-8">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4 md:gap-8">
           <div
-            className="flex items-center gap-1 border border-zinc-800 bg-zinc-950/80 p-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500"
+            className="group/lang flex items-center gap-1 border border-zinc-800 bg-zinc-950/80 p-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors duration-300 hover:border-purple-500/35 touch-manipulation"
             role="group"
             aria-label={t.header.languageLabel}
           >
-            <Languages className="mx-1 h-3.5 w-3.5 text-zinc-600" aria-hidden />
-            <button
+            <Languages
+              className="mx-1 h-3.5 w-3.5 text-zinc-600 transition-colors duration-300 group-hover/lang:text-violet-400"
+              aria-hidden
+            />
+            <motion.button
               type="button"
               onClick={() => setLang("fr")}
-              className={`px-2 py-1 transition-colors ${
+              className={`min-h-[40px] min-w-[36px] origin-center px-2 py-1 transition-colors duration-300 sm:min-h-0 sm:min-w-0 ${
                 lang === "fr"
-                  ? "bg-zinc-900 text-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "text-violet-300 hover:text-violet-200"
+                  : "text-zinc-600 hover:text-violet-300"
               }`}
+              animate={{ scale: lang === "fr" ? 1.1 : 1 }}
+              whileHover={lang === "fr" ? { scale: 1.12 } : { scale: 1.06 }}
+              whileTap={{ scale: 0.95 }}
+              transition={menuSpring}
             >
               {t.header.langOptionFr}
-            </button>
-            <span className="text-zinc-800" aria-hidden>
+            </motion.button>
+            <span className="text-zinc-700 transition-colors duration-300 group-hover/lang:text-purple-600/70" aria-hidden>
               /
             </span>
-            <button
+            <motion.button
               type="button"
               onClick={() => setLang("en")}
-              className={`px-2 py-1 transition-colors ${
+              className={`min-h-[40px] min-w-[36px] origin-center px-2 py-1 transition-colors duration-300 sm:min-h-0 sm:min-w-0 ${
                 lang === "en"
-                  ? "bg-zinc-900 text-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "text-violet-300 hover:text-violet-200"
+                  : "text-zinc-600 hover:text-violet-300"
               }`}
+              animate={{ scale: lang === "en" ? 1.1 : 1 }}
+              whileHover={lang === "en" ? { scale: 1.12 } : { scale: 1.06 }}
+              whileTap={{ scale: 0.95 }}
+              transition={menuSpring}
             >
               {t.header.langOptionEn}
-            </button>
+            </motion.button>
           </div>
 
-          <Link
+          <MotionLink
             href="/contact"
-            className="font-label group flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-400 transition-colors hover:text-white"
+            className="font-label group hidden min-h-[44px] items-center gap-2 text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-400 transition-colors duration-300 hover:text-violet-300 sm:inline-flex sm:text-[11px] touch-manipulation"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            transition={menuSpring}
           >
-            <LogIn className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
-            <span className="underline-offset-4 transition-all group-hover:underline">
-              {t.header.login}
-            </span>
-          </Link>
+            <LogIn
+              className="h-3.5 w-3.5 shrink-0 transition-colors duration-300 group-hover:text-violet-300"
+              strokeWidth={1.5}
+              aria-hidden
+            />
+            <span className="underline-offset-4 transition-all group-hover:underline">{t.header.login}</span>
+          </MotionLink>
+
+          <motion.button
+            type="button"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-zinc-800 bg-zinc-950/80 text-zinc-300 transition-colors hover:border-purple-500/45 hover:text-violet-200 md:hidden touch-manipulation"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-primary-nav"
+            aria-label={mobileOpen ? t.header.menuClose : t.header.menuOpen}
+            onClick={() => setMobileOpen((o) => !o)}
+            whileTap={{ scale: 0.96 }}
+          >
+            {mobileOpen ? <X className="h-5 w-5" strokeWidth={1.25} aria-hidden /> : <Menu className="h-5 w-5" strokeWidth={1.25} aria-hidden />}
+          </motion.button>
         </div>
       </div>
+
+      <AnimatePresence initial={false}>
+        {mobileOpen ? (
+          <motion.div
+            key="mobile-nav"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.28, ease: MOBILE_PANEL_EASE }}
+            className="overflow-hidden border-t border-zinc-900/60 bg-black/85 backdrop-blur-lg md:hidden"
+          >
+            <nav
+              id="mobile-primary-nav"
+              aria-label={t.header.mainNavAria}
+              className="flex flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-1"
+            >
+              {navItems.map(({ href, label }) => (
+                <MotionLink
+                  key={`m-${href}-${label}`}
+                  href={href}
+                  onClick={closeMobile}
+                  className="border-b border-zinc-900/70 py-3.5 text-[11px] uppercase tracking-[0.28em] text-zinc-300 transition-colors last:border-b-0 active:bg-zinc-950/80 touch-manipulation"
+                  whileTap={{ scale: 0.99 }}
+                >
+                  {label}
+                </MotionLink>
+              ))}
+              <MotionLink
+                href="/contact"
+                onClick={closeMobile}
+                className="mt-2 flex min-h-[48px] items-center gap-2 border border-zinc-800 bg-zinc-950/60 px-3 py-3 text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-300 touch-manipulation"
+                whileTap={{ scale: 0.99 }}
+              >
+                <LogIn className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.5} aria-hidden />
+                {t.header.login}
+              </MotionLink>
+            </nav>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </motion.header>
   );
 }
-
