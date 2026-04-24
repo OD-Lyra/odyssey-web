@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import Link from "next/link";
-import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import type { AppDictionary } from "../../lib/dictionaries";
 import type { Locale } from "../../i18n.config";
 
@@ -19,6 +19,31 @@ const VIDEOS = [
   "/reel-02.mp4",
   "/reel-03.mp4"
 ];
+
+const FILM_GRAIN_STYLES = `
+  .grain-engine::before {
+    content: ""; position: absolute; inset: -100%;
+    background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+    background-size: 180px; opacity: 0.12; pointer-events: none;
+    animation: grain-dance 4s steps(5) infinite;
+  }
+  @keyframes grain-dance {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-1%, 2%); }
+    50% { transform: translate(2%, -1%); }
+  }
+  .vibrant-halo {
+    color: white;
+    text-shadow: 0 0 15px rgba(124, 58, 237, 0.8), 0 0 30px rgba(139, 92, 246, 0.5);
+  }
+  .neon-vivid:hover {
+    color: #ffffff !important;
+    text-shadow: 0 0 10px #fff, 0 0 20px #8b5cf6, 0 0 40px #7c3aed;
+    transform: scale(1.06); letter-spacing: 0.6em;
+  }
+`;
+
+const LOCOMOTIVE_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 function pickRandomLine(pool: readonly string[]): string {
   if (pool.length === 0) return "";
@@ -60,7 +85,7 @@ export function Hero({
     setPitchPhase(0);
   }, [lang]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!isNarrativeMode) return;
     const pools: readonly (readonly string[])[] = [
       pitchDeck.hooks,
@@ -72,23 +97,23 @@ export function Hero({
     setPitchLine(pickRandomLine(pool));
   }, [pitchPhase, isNarrativeMode, pitchDeck]);
 
-  const clearPitchStartTimeout = () => {
+  const clearPitchStartTimeout = useCallback(() => {
     if (pitchStartTimeoutRef.current !== null) {
       clearTimeout(pitchStartTimeoutRef.current);
       pitchStartTimeoutRef.current = null;
     }
-  };
+  }, []);
 
-  const schedulePitchStart = () => {
+  const schedulePitchStart = useCallback(() => {
     clearPitchStartTimeout();
     pitchStartTimeoutRef.current = setTimeout(() => setIsNarrativeMode(true), 3500);
-  };
+  }, [clearPitchStartTimeout]);
 
   // Same as original: pitch delay follows mount / language change (do not gate on useInView — see scroll effect).
   useEffect(() => {
     schedulePitchStart();
     return clearPitchStartTimeout;
-  }, [lang]);
+  }, [lang, schedulePitchStart, clearPitchStartTimeout]);
 
   useEffect(() => {
     if (!isNarrativeMode) return;
@@ -133,8 +158,6 @@ export function Hero({
     return () => clearInterval(videoTimer);
   }, []);
 
-  const locomotiveEase = [0.16, 1, 0.3, 1];
-
   return (
     <section
       ref={heroRef}
@@ -142,28 +165,7 @@ export function Hero({
       style={{ isolation: "isolate" }}
     >
       
-      <style dangerouslySetInnerHTML={{ __html: `
-        .grain-engine::before {
-          content: ""; position: absolute; inset: -100%;
-          background-image: url("https://grainy-gradients.vercel.app/noise.svg");
-          background-size: 180px; opacity: 0.12; pointer-events: none;
-          animation: grain-dance 4s steps(5) infinite;
-        }
-        @keyframes grain-dance {
-          0%, 100% { transform: translate(0, 0); }
-          25% { transform: translate(-1%, 2%); }
-          50% { transform: translate(2%, -1%); }
-        }
-        .vibrant-halo {
-          color: white;
-          text-shadow: 0 0 15px rgba(124, 58, 237, 0.8), 0 0 30px rgba(139, 92, 246, 0.5);
-        }
-        .neon-vivid:hover {
-          color: #ffffff !important;
-          text-shadow: 0 0 10px #fff, 0 0 20px #8b5cf6, 0 0 40px #7c3aed;
-          transform: scale(1.06); letter-spacing: 0.6em;
-        }
-      `}} />
+      <style dangerouslySetInnerHTML={{ __html: FILM_GRAIN_STYLES }} />
 
       {/* LAYER 0 : VIDEO ENGINE (Sécurisé) */}
       <div className="absolute inset-0 z-0 pointer-events-none bg-[#020202]">
@@ -173,15 +175,13 @@ export function Hero({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 2.5, ease: locomotiveEase }}
-            className="absolute inset-0"
+            transition={{ duration: 2.5, ease: LOCOMOTIVE_EASE }}
+            className="absolute inset-0 will-change-opacity"
           >
             <video 
               src={VIDEOS[videoIndex]} 
-              autoPlay loop muted playsInline 
+              autoPlay loop muted playsInline preload="auto" poster="/logo.png"
               className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
-              onLoadedData={(e) => console.log("Video loaded")}
-              onError={(e) => console.error("Video error on:", VIDEOS[videoIndex])}
             />
           </motion.div>
         </AnimatePresence>
@@ -199,8 +199,8 @@ export function Hero({
           left: "40px",
           scale: isNarrativeMode ? 0.12 : 1,
         }}
-        transition={{ duration: 2.5, ease: locomotiveEase }}
-        className="absolute z-20 pointer-events-none px-8 md:px-20 origin-top-left"
+        transition={{ duration: 2.5, ease: LOCOMOTIVE_EASE }}
+        className="absolute z-20 pointer-events-none px-8 md:px-20 origin-top-left will-change-transform"
       >
         <h1 className="text-[16vw] md:text-[12.5vw] leading-[0.8] tracking-[-0.05em] text-white font-bold uppercase whitespace-nowrap">
           Odyssey <br /> Films
@@ -216,7 +216,8 @@ export function Hero({
               initial={{ opacity: 0, filter: "blur(20px)", y: 25 }}
               animate={{ opacity: 1, filter: "blur(0px)", y: -60 }}
               exit={{ opacity: 0, filter: "blur(20px)", y: -80 }}
-              transition={{ duration: 1.8, ease: locomotiveEase }}
+              transition={{ duration: 1.8, ease: LOCOMOTIVE_EASE }}
+              className="will-change-transform"
             >
               <PitchLine
                 phrase={pitchLine || pitchDeck.hooks[0]}
@@ -316,7 +317,7 @@ function NavItem({
 }) {
   return (
     <div className={`relative py-2 px-4 -ml-4 overflow-visible ${itemClass}`}>
-      <motion.div initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1], delay }}>
+      <motion.div className="will-change-transform" initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1], delay }}>
         <Link
           href={href}
           className={`neon-vivid inline-block text-[12px] md:text-[14px] font-bold uppercase tracking-[0.5em] transition-all duration-700 ease-out cursor-pointer select-none ${isWhite ? "text-white" : "text-zinc-500"}`}
