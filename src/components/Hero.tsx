@@ -69,8 +69,15 @@ export function Hero({
 
   const [pitchPhase, setPitchPhase] = useState(0);
   const [pitchLine, setPitchLine] = useState("");
-  const [videoIndex, setVideoIndex] = useState(0);
+  const [activeDeck, setActiveDeck] = useState<0 | 1>(0);
+  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const [nextVideoIndex, setNextVideoIndex] = useState(1 % VIDEOS.length);
+  const [switchRequested, setSwitchRequested] = useState(false);
+  const [nextReady, setNextReady] = useState(false);
+  const [useStaticFallback, setUseStaticFallback] = useState(false);
   const [isNarrativeMode, setIsNarrativeMode] = useState(false);
+  const activeVideoRef = useRef<HTMLVideoElement | null>(null);
+  const inactiveVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const pitchDeck = useMemo(() => dictionary.pitch as HeroPitchDeck, [dictionary.pitch]);
 
@@ -153,9 +160,85 @@ export function Hero({
     // 2. On change de vidéo toutes le 12s (Seulement s'il y en a plus d'une)
     if (VIDEOS.length <= 1) return;
     const videoTimer = setInterval(() => {
-      setVideoIndex((prev) => (prev + 1) % VIDEOS.length);
+      setSwitchRequested(true);
+      setNextReady(false);
+      setNextVideoIndex((prev) => {
+        if (prev === activeVideoIndex) {
+          return (activeVideoIndex + 1) % VIDEOS.length;
+        }
+        return prev;
+      });
     }, 12000);
     return () => clearInterval(videoTimer);
+  }, [activeVideoIndex]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const nav = navigator as Navigator & {
+      connection?: {
+        effectiveType?: string;
+        saveData?: boolean;
+      };
+      deviceMemory?: number;
+      hardwareConcurrency?: number;
+    };
+
+    const isSmallScreen = window.matchMedia("(max-width: 768px)").matches;
+    const connectionType = nav.connection?.effectiveType ?? "";
+    const isSlowNetwork = ["slow-2g", "2g", "3g"].includes(connectionType);
+    const saveData = nav.connection?.saveData === true;
+    const lowMemory = typeof nav.deviceMemory === "number" && nav.deviceMemory <= 4;
+    const lowCpu = typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4;
+
+    setUseStaticFallback(isSmallScreen || isSlowNetwork || saveData || lowMemory || lowCpu);
+  }, []);
+
+  useEffect(() => {
+    if (!switchRequested || !nextReady) return;
+    const oldActive = activeVideoRef.current;
+    const newActive = inactiveVideoRef.current;
+    if (!newActive) return;
+
+    newActive.currentTime = 0;
+    void newActive.play().catch(() => {
+      // Ignore autoplay restrictions; user gesture can unlock playback.
+    });
+    if (oldActive) {
+      oldActive.pause();
+      oldActive.currentTime = 0;
+    }
+
+    setActiveDeck((prev) => (prev === 0 ? 1 : 0));
+    setActiveVideoIndex(nextVideoIndex);
+    setNextVideoIndex((nextVideoIndex + 1) % VIDEOS.length);
+    setSwitchRequested(false);
+    setNextReady(false);
+  }, [switchRequested, nextReady, nextVideoIndex]);
+
+  useEffect(() => {
+    if (!switchRequested || useStaticFallback) return;
+    const candidate = inactiveVideoRef.current;
+    if (candidate && candidate.readyState >= 3) {
+      setNextReady(true);
+    }
+  }, [switchRequested, nextVideoIndex, activeDeck, useStaticFallback]);
+
+  useEffect(() => {
+    const ref = activeDeck === 0 ? activeVideoRef : inactiveVideoRef;
+    const current = ref.current;
+    if (!current || useStaticFallback) return;
+    void current.play().catch(() => {
+      // Ignore autoplay restrictions.
+    });
+  }, [activeDeck, activeVideoIndex, useStaticFallback]);
+
+  const registerInactiveCanPlay = useCallback(() => {
+    const candidate = inactiveVideoRef.current;
+    if (!candidate) return;
+    if (candidate.readyState >= 3) {
+      setNextReady(true);
+    }
   }, []);
 
   return (
@@ -169,22 +252,64 @@ export function Hero({
 
       {/* LAYER 0 : VIDEO ENGINE (Sécurisé) */}
       <div className="absolute inset-0 z-0 pointer-events-none bg-[#020202]">
-        <AnimatePresence mode="wait">
+        {useStaticFallback ? (
           <motion.div
-            key={videoIndex}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 2.5, ease: LOCOMOTIVE_EASE }}
             className="absolute inset-0 will-change-opacity"
           >
-            <video 
-              src={VIDEOS[videoIndex]} 
-              autoPlay loop muted playsInline preload="auto" poster="/logo.png"
-              className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
+            <img
+              src="/logo.png"
+              alt=""
+              aria-hidden
+              className="h-full w-full object-cover grayscale-[0.05] contrast-[1.1]"
             />
           </motion.div>
-        </AnimatePresence>
+        ) : (
+          <>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeDeck === 0 ? 1 : 0 }}
+              transition={{ duration: 2.5, ease: LOCOMOTIVE_EASE }}
+              className="absolute inset-0 will-change-opacity"
+              style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+            >
+              <video
+                ref={activeDeck === 0 ? activeVideoRef : inactiveVideoRef}
+                src={VIDEOS[activeDeck === 0 ? activeVideoIndex : nextVideoIndex]}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload={activeDeck === 0 ? "auto" : "metadata"}
+                poster="/logo.png"
+                className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
+                onCanPlay={activeDeck === 0 ? undefined : registerInactiveCanPlay}
+              />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeDeck === 1 ? 1 : 0 }}
+              transition={{ duration: 2.5, ease: LOCOMOTIVE_EASE }}
+              className="absolute inset-0 will-change-opacity"
+              style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+            >
+              <video
+                ref={activeDeck === 1 ? activeVideoRef : inactiveVideoRef}
+                src={VIDEOS[activeDeck === 1 ? activeVideoIndex : nextVideoIndex]}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload={activeDeck === 1 ? "auto" : "metadata"}
+                poster="/logo.png"
+                className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
+                onCanPlay={activeDeck === 1 ? undefined : registerInactiveCanPlay}
+              />
+            </motion.div>
+          </>
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 z-[1]" />
       </div>
 
