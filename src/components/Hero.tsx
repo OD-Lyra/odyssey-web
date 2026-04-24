@@ -41,9 +41,18 @@ const FILM_GRAIN_STYLES = `
     text-shadow: 0 0 10px #fff, 0 0 20px #8b5cf6, 0 0 40px #7c3aed;
     transform: scale(1.06); letter-spacing: 0.6em;
   }
+  .hero-kenburns {
+    animation: hero-kenburns 14s ease-in-out infinite alternate;
+    transform-origin: center center;
+  }
+  @keyframes hero-kenburns {
+    from { transform: scale(1); }
+    to { transform: scale(1.04); }
+  }
 `;
 
 const LOCOMOTIVE_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const VIDEO_CROSSFADE_MS = 2500;
 
 function pickRandomLine(pool: readonly string[]): string {
   if (pool.length === 0) return "";
@@ -74,10 +83,13 @@ export function Hero({
   const [nextVideoIndex, setNextVideoIndex] = useState(1 % VIDEOS.length);
   const [switchRequested, setSwitchRequested] = useState(false);
   const [nextReady, setNextReady] = useState(false);
+  const [isMobileMode, setIsMobileMode] = useState(false);
   const [useStaticFallback, setUseStaticFallback] = useState(false);
+  const [showInitialPoster, setShowInitialPoster] = useState(true);
   const [isNarrativeMode, setIsNarrativeMode] = useState(false);
   const activeVideoRef = useRef<HTMLVideoElement | null>(null);
   const inactiveVideoRef = useRef<HTMLVideoElement | null>(null);
+  const switchingRef = useRef(false);
 
   const pitchDeck = useMemo(() => dictionary.pitch as HeroPitchDeck, [dictionary.pitch]);
 
@@ -186,34 +198,56 @@ export function Hero({
 
     const isSmallScreen = window.matchMedia("(max-width: 768px)").matches;
     const connectionType = nav.connection?.effectiveType ?? "";
-    const isSlowNetwork = ["slow-2g", "2g", "3g"].includes(connectionType);
+    const isSlowNetwork = ["slow-2g", "2g"].includes(connectionType);
     const saveData = nav.connection?.saveData === true;
-    const lowMemory = typeof nav.deviceMemory === "number" && nav.deviceMemory <= 4;
-    const lowCpu = typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4;
+    const lowMemory = typeof nav.deviceMemory === "number" && nav.deviceMemory <= 2;
+    const lowCpu = typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 2;
 
-    setUseStaticFallback(isSmallScreen || isSlowNetwork || saveData || lowMemory || lowCpu);
+    setIsMobileMode(isSmallScreen);
+    setUseStaticFallback(saveData || isSlowNetwork || lowMemory || lowCpu);
   }, []);
 
   useEffect(() => {
     if (!switchRequested || !nextReady) return;
+    if (switchingRef.current) return;
+    switchingRef.current = true;
     const oldActive = activeVideoRef.current;
     const newActive = inactiveVideoRef.current;
-    if (!newActive) return;
-
-    newActive.currentTime = 0;
-    void newActive.play().catch(() => {
-      // Ignore autoplay restrictions; user gesture can unlock playback.
-    });
-    if (oldActive) {
-      oldActive.pause();
-      oldActive.currentTime = 0;
+    if (!newActive) {
+      switchingRef.current = false;
+      return;
     }
 
-    setActiveDeck((prev) => (prev === 0 ? 1 : 0));
-    setActiveVideoIndex(nextVideoIndex);
-    setNextVideoIndex((nextVideoIndex + 1) % VIDEOS.length);
-    setSwitchRequested(false);
-    setNextReady(false);
+    const runSwitch = async () => {
+      try {
+        newActive.currentTime = 0;
+        await newActive.play();
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => resolve()),
+          ),
+        );
+
+        setActiveDeck((prev) => (prev === 0 ? 1 : 0));
+        setActiveVideoIndex(nextVideoIndex);
+        setNextVideoIndex((nextVideoIndex + 1) % VIDEOS.length);
+        setSwitchRequested(false);
+        setNextReady(false);
+
+        window.setTimeout(() => {
+          if (oldActive) {
+            oldActive.pause();
+            oldActive.removeAttribute("src");
+            oldActive.load();
+          }
+          switchingRef.current = false;
+        }, VIDEO_CROSSFADE_MS);
+      } catch {
+        switchingRef.current = false;
+      }
+    };
+
+    void runSwitch();
   }, [switchRequested, nextReady, nextVideoIndex]);
 
   useEffect(() => {
@@ -241,6 +275,12 @@ export function Hero({
     }
   }, []);
 
+  const clearInitialPoster = useCallback(() => {
+    if (showInitialPoster) {
+      setShowInitialPoster(false);
+    }
+  }, [showInitialPoster]);
+
   return (
     <section
       ref={heroRef}
@@ -263,7 +303,27 @@ export function Hero({
               src="/logo.png"
               alt=""
               aria-hidden
-              className="h-full w-full object-cover grayscale-[0.05] contrast-[1.1]"
+              className="hero-kenburns h-full w-full object-cover grayscale-[0.05] contrast-[1.1]"
+            />
+          </motion.div>
+        ) : isMobileMode ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 2.5, ease: LOCOMOTIVE_EASE }}
+            className="absolute inset-0 will-change-opacity"
+            style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+          >
+            <video
+              src={VIDEOS[0]}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              poster={showInitialPoster ? "/logo.png" : undefined}
+              className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
+              onLoadedData={clearInitialPoster}
             />
           </motion.div>
         ) : (
@@ -283,9 +343,10 @@ export function Hero({
                 muted
                 playsInline
                 preload={activeDeck === 0 ? "auto" : "metadata"}
-                poster="/logo.png"
+                poster={showInitialPoster && activeDeck === 0 ? "/logo.png" : undefined}
                 className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
                 onCanPlay={activeDeck === 0 ? undefined : registerInactiveCanPlay}
+                onLoadedData={activeDeck === 0 ? clearInitialPoster : undefined}
               />
             </motion.div>
             <motion.div
@@ -303,9 +364,10 @@ export function Hero({
                 muted
                 playsInline
                 preload={activeDeck === 1 ? "auto" : "metadata"}
-                poster="/logo.png"
+                poster={showInitialPoster && activeDeck === 1 ? "/logo.png" : undefined}
                 className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
                 onCanPlay={activeDeck === 1 ? undefined : registerInactiveCanPlay}
+                onLoadedData={activeDeck === 1 ? clearInitialPoster : undefined}
               />
             </motion.div>
           </>
