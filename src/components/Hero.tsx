@@ -17,7 +17,8 @@ type HeroPitchDeck = {
 const VIDEOS = [
   "/hero.mp4",
   "/reel-02.mp4",
-  "/reel-03.mp4"
+  "/reel-03.mp4",
+  "/reel-04.mp4",
 ];
 
 const FILM_GRAIN_STYLES = `
@@ -85,7 +86,6 @@ export function Hero({
   const [nextReady, setNextReady] = useState(false);
   const [isMobileMode, setIsMobileMode] = useState(false);
   const [useStaticFallback, setUseStaticFallback] = useState(false);
-  const [showInitialPoster, setShowInitialPoster] = useState(true);
   const [isNarrativeMode, setIsNarrativeMode] = useState(false);
   const activeVideoRef = useRef<HTMLVideoElement | null>(null);
   const inactiveVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -275,12 +275,6 @@ export function Hero({
     }
   }, []);
 
-  const clearInitialPoster = useCallback(() => {
-    if (showInitialPoster) {
-      setShowInitialPoster(false);
-    }
-  }, [showInitialPoster]);
-
   return (
     <section
       ref={heroRef}
@@ -299,9 +293,13 @@ export function Hero({
             transition={{ duration: 2.5, ease: LOCOMOTIVE_EASE }}
             className="absolute inset-0 will-change-opacity"
           >
-            <img
-              src="/logo.png"
-              alt=""
+            <video
+              src={VIDEOS[0]}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
               aria-hidden
               className="hero-kenburns h-full w-full object-cover grayscale-[0.05] contrast-[1.1]"
             />
@@ -321,9 +319,7 @@ export function Hero({
               muted
               playsInline
               preload="metadata"
-              poster={showInitialPoster ? "/logo.png" : undefined}
               className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
-              onLoadedData={clearInitialPoster}
             />
           </motion.div>
         ) : (
@@ -343,10 +339,8 @@ export function Hero({
                 muted
                 playsInline
                 preload={activeDeck === 0 ? "auto" : "metadata"}
-                poster={showInitialPoster && activeDeck === 0 ? "/logo.png" : undefined}
                 className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
                 onCanPlay={activeDeck === 0 ? undefined : registerInactiveCanPlay}
-                onLoadedData={activeDeck === 0 ? clearInitialPoster : undefined}
               />
             </motion.div>
             <motion.div
@@ -364,10 +358,8 @@ export function Hero({
                 muted
                 playsInline
                 preload={activeDeck === 1 ? "auto" : "metadata"}
-                poster={showInitialPoster && activeDeck === 1 ? "/logo.png" : undefined}
                 className="w-full h-full object-cover grayscale-[0.05] contrast-[1.1]"
                 onCanPlay={activeDeck === 1 ? undefined : registerInactiveCanPlay}
-                onLoadedData={activeDeck === 1 ? clearInitialPoster : undefined}
               />
             </motion.div>
           </>
