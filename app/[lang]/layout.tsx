@@ -1,28 +1,9 @@
-import "../globals.css";
 import type { Metadata, Viewport } from "next";
-import { Inter, Montserrat, Playfair_Display } from "next/font/google";
 import type { ReactNode } from "react";
+import { DocumentLang } from "@/src/components/DocumentLang";
 import { i18n, type Locale } from "@/i18n.config";
 import { getDictionary } from "@/lib/dictionaries";
 import { getSiteUrl } from "@/lib/siteUrl";
-
-const editorialFont = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-editorial",
-  weight: ["500", "600", "700"],
-});
-
-const labelFont = Inter({
-  subsets: ["latin"],
-  variable: "--font-label",
-  weight: ["400", "500", "600", "700"],
-});
-
-const brandFont = Montserrat({
-  subsets: ["latin"],
-  variable: "--font-brand",
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -91,16 +72,13 @@ export default async function LangLayout({
   };
 
   return (
-    <html lang={htmlLang}>
-      <body
-        className={`${editorialFont.variable} ${labelFont.variable} ${brandFont.variable} bg-black text-white antialiased`}
-      >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        {children}
-      </body>
-    </html>
+    <>
+      <DocumentLang lang={htmlLang} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {children}
+    </>
   );
 }

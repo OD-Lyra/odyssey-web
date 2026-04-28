@@ -30,3 +30,20 @@ body {
   background: rgba(88, 28, 135, 0.85);
   color: #fff;
 }
+
+@keyframes login-form-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-login-form-shake {
+  animation: login-form-shake 0.2s ease-out;
+}

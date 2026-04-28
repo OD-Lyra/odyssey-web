@@ -1,13 +1,81 @@
-export default function DashboardPage() {
+import { redirect } from "next/navigation";
+import { DashboardSignOut } from "@/src/components/dashboard/DashboardSignOut";
+import { TributeWizard } from "@/src/components/tribute/TributeWizard";
+import { getDictionary } from "@/lib/dictionaries";
+import { createClient } from "@/utils/supabase/server";
+import type { Locale } from "@/i18n.config";
+
+export const dynamic = "force-dynamic";
+
+/** Halo léger violet — cohérent avec la page login (atmosphère Studio). */
+const HALO_DASH_PRIMARY =
+  "radial-gradient(ellipse 106% 74% at 50% 42%, rgba(139, 92, 246, 0.2) 0%, rgba(91, 33, 182, 0.09) 44%, transparent 72%)";
+const HALO_DASH_SECONDARY =
+  "radial-gradient(ellipse 112% 78% at 50% 48%, rgba(103, 232, 249, 0.08) 0%, transparent 62%)";
+
+type PageProps = {
+  params: Promise<{ lang: string }>;
+};
+
+export default async function DashboardPage({ params }: PageProps) {
+  const { lang: routeLang } = await params;
+  const lang: Locale = routeLang === "en" ? "en" : "fr";
+  const dictionary = await getDictionary(lang);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/${lang}/login`);
+  }
+
+  const rawName = user.user_metadata?.display_name;
+  const displayName =
+    typeof rawName === "string" && rawName.trim().length > 0
+      ? rawName.trim()
+      : dictionary.dashboard.guestName;
+
+  const welcomeLine = dictionary.dashboard.welcomeStudio.replace(
+    "{name}",
+    displayName,
+  );
+
   return (
-    <main className="min-h-screen bg-[#020202] px-8 py-16 text-zinc-100">
-      <h1 className="font-label text-xs font-bold uppercase tracking-[0.5em] text-white/80">
-        Dashboard
-      </h1>
-      <p className="mt-6 text-sm text-white/60">
-        Customer project status. Placeholder.
-      </p>
+    <main className="relative min-h-screen overflow-x-hidden bg-[#020202] text-zinc-100">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-[38%] z-0 h-[min(72vh,720px)] w-[min(155vw,72rem)] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.55] blur-[180px]"
+          style={{ backgroundImage: HALO_DASH_PRIMARY }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[min(95vh,940px)] w-[min(185vw,84rem)] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.35] blur-[220px]"
+          style={{ backgroundImage: HALO_DASH_SECONDARY }}
+        />
+      </div>
+
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col px-6 pb-16 pt-10 md:px-10 md:pt-14">
+        <header className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1 space-y-2">
+            <p className="text-[10px] font-medium uppercase tracking-[0.55em] text-white/35">
+              {dictionary.dashboard.title}
+            </p>
+            <h1 className="text-xl font-light leading-snug tracking-[0.02em] text-white md:text-2xl">
+              {welcomeLine}
+            </h1>
+          </div>
+          <DashboardSignOut
+            lang={lang}
+            label={dictionary.dashboard.signOut}
+            className="shrink-0 sm:mt-1"
+          />
+        </header>
+
+        <TributeWizard copy={dictionary.tributeWizard} />
+      </div>
     </main>
   );
 }
-

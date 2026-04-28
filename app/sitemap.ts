@@ -4,6 +4,7 @@ import { getSiteUrl } from "@/lib/siteUrl";
 
 const localizedRoutes = [
   "",
+  "/login",
   "/manifesto",
   "/process",
   "/contact",
