@@ -3,7 +3,6 @@
 import {
   Calendar,
   Camera,
-  Clapperboard,
   Cloud,
   GripVertical,
   Heart,
@@ -20,6 +19,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { MediaDropzoneAdapter } from "@/src/components/media/MediaDropzoneAdapter";
 import type { AppDictionary } from "@/lib/dictionaries";
 
 export type TributeWizardCopy = AppDictionary["tributeWizard"];
@@ -75,14 +75,12 @@ export function TributeWizard({ copy }: { copy: TributeWizardCopy }) {
 
   const [selectedSocial, setSelectedSocial] = useState<SocialId | null>(null);
   const [selectedMood, setSelectedMood] = useState<MoodId | null>(null);
-  const [fileCount, setFileCount] = useState(0);
   const [trackOrder, setTrackOrder] = useState<TrackId[]>(["a", "b", "c"]);
   const [draggingId, setDraggingId] = useState<TrackId | null>(null);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dropZoneId = useId();
   const wizardTitleId = useId();
+  const uploadProjectId = useMemo(() => crypto.randomUUID(), []);
 
   const moodOptions = useMemo(
     () =>
@@ -160,25 +158,6 @@ export function TributeWizard({ copy }: { copy: TributeWizardCopy }) {
     },
     [],
   );
-
-  const handleFiles = useCallback((list: FileList | null) => {
-    if (!list?.length) return;
-    setFileCount((n) => n + list.length);
-  }, []);
-
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleFiles(e.dataTransfer.files);
-    },
-    [handleFiles],
-  );
-
-  const onDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-  }, []);
 
   const finish = useCallback(() => {
     if (!selectedMood) return;
@@ -539,66 +518,134 @@ export function TributeWizard({ copy }: { copy: TributeWizardCopy }) {
                 {copy.stepMediaDescription}
               </p>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                className="sr-only"
-                aria-label={copy.uploadAria}
-                onChange={(e) => handleFiles(e.target.files)}
-              />
-
-              <button
-                type="button"
-                id={dropZoneId}
-                onClick={() => fileInputRef.current?.click()}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    fileInputRef.current?.click();
-                  }
-                }}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                className="group relative mt-10 flex w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/12 bg-white/[0.03] px-6 py-16 text-center shadow-[0_0_24px_rgba(99,102,241,0.08)] transition-[border,box-shadow] hover:border-teal-400/25 hover:shadow-[0_0_32px_rgba(34,211,238,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020202]"
-                aria-describedby={`${dropZoneId}-hint`}
+              <MediaDropzoneAdapter
+                projectId={uploadProjectId}
+                autoStart
+                maxFiles={150}
+                maxFileSizeBytes={300 * 1024 * 1024}
               >
-                <span
-                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-400 group-hover:opacity-100"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse 80% 70% at 50% 80%, rgba(34,211,238,0.15) 0%, transparent 55%)",
-                  }}
-                />
-                <div className="relative flex items-center gap-3 text-teal-300/85">
-                  <Cloud className="h-11 w-11 shrink-0" strokeWidth={1.1} />
-                  <Clapperboard
-                    className="h-9 w-9 shrink-0 opacity-70"
-                    strokeWidth={1.1}
-                  />
-                </div>
-                <span className="relative mt-6 text-lg font-light text-zinc-200 md:text-xl">
-                  {copy.uploadPrompt}
-                </span>
-                <span
-                  id={`${dropZoneId}-hint`}
-                  className="relative mt-2 text-sm font-light text-zinc-500"
-                >
-                  {copy.uploadSubtext}
-                </span>
-                {fileCount > 0 ? (
-                  <span
-                    className="relative mt-4 text-sm text-teal-400/90"
-                    aria-live="polite"
-                  >
-                    {copy.uploadFilesCount.replace(
-                      "{count}",
-                      String(fileCount),
-                    )}
-                  </span>
-                ) : null}
-              </button>
+                {(dz) => {
+                  const isStep3Locked = dz.isRunning || dz.totals.uploaded === 0;
+
+                  return (
+                    <>
+                      <div
+                        {...dz.getRootProps({
+                          className: `group relative mt-10 flex w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed bg-white/[0.03] px-6 py-16 text-center backdrop-blur-xl shadow-[0_0_24px_rgba(99,102,241,0.08)] transition-[border,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020202] ${
+                            dz.isDragReject
+                              ? "border-fuchsia-500/60 shadow-[0_0_32px_rgba(255,0,255,0.24)] focus-visible:ring-fuchsia-500/40"
+                              : dz.isDragAccept || dz.isDragActive
+                                ? "border-teal-400/30 shadow-[0_0_32px_rgba(34,211,238,0.16)] focus-visible:ring-teal-400/35"
+                                : "border-white/12 hover:border-teal-400/25 hover:shadow-[0_0_32px_rgba(34,211,238,0.12)] focus-visible:ring-teal-400/35"
+                          }`,
+                        })}
+                        aria-describedby="wizard-step3-dropzone-hint"
+                      >
+                        <input {...dz.getInputProps({ "aria-label": copy.uploadAria })} />
+
+                        <span
+                          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-400 group-hover:opacity-100"
+                          style={{
+                            background: dz.isDragReject
+                              ? "radial-gradient(ellipse 80% 70% at 50% 80%, rgba(255, 0, 255, 0.24) 0%, transparent 55%)"
+                              : "radial-gradient(ellipse 80% 70% at 50% 80%, rgba(34,211,238,0.15) 0%, transparent 55%)",
+                          }}
+                        />
+
+                        <div className="relative flex items-center gap-3 text-teal-300/85">
+                          <ImageIcon className="h-11 w-11 shrink-0" strokeWidth={1.1} />
+                          <Music2 className="h-9 w-9 shrink-0 opacity-70" strokeWidth={1.1} />
+                        </div>
+                        <span className="relative mt-6 text-lg font-light text-zinc-200 md:text-xl">
+                          {copy.uploadPrompt}
+                        </span>
+                        <span
+                          id="wizard-step3-dropzone-hint"
+                          className="relative mt-2 text-sm font-light text-zinc-500"
+                        >
+                          {copy.uploadSubtext}
+                        </span>
+                        {(dz.totals.uploaded > 0 || dz.totals.uploading > 0) ? (
+                          <span
+                            className="relative mt-4 text-sm text-teal-400/90"
+                            aria-live="polite"
+                          >
+                            {copy.uploadFilesCount.replace(
+                              "{count}",
+                              String(dz.totals.uploaded),
+                            )}
+                          </span>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            dz.open();
+                          }}
+                          className="relative mt-4 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/[0.08]"
+                        >
+                          {copy.uploadPrompt}
+                        </button>
+                      </div>
+
+                      {dz.rejections.length > 0 ? (
+                        <div className="mt-5 rounded-xl border border-fuchsia-500/45 bg-fuchsia-950/10 p-4 shadow-[0_0_24px_rgba(255,0,255,0.22)] backdrop-blur-md">
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-sm font-medium text-fuchsia-200/95">
+                              Fichiers rejetes
+                            </p>
+                            <button
+                              type="button"
+                              onClick={dz.clearRejections}
+                              className="text-xs text-fuchsia-200/80 underline decoration-fuchsia-300/40 underline-offset-4 hover:text-fuchsia-100"
+                            >
+                              Effacer
+                            </button>
+                          </div>
+                          <ul className="space-y-1.5">
+                            {dz.rejections.slice(0, 6).map((r, idx) => (
+                              <li key={`${r.fileName}-${idx}`} className="text-xs text-fuchsia-100/90">
+                                <span className="font-medium text-[#ff00ff]">{r.code}</span>{" "}
+                                <span className="text-fuchsia-100/80">- {r.fileName}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+
+                      <p className="mt-4 text-sm font-light text-zinc-500">
+                        {dz.isRunning
+                          ? "Televersement en cours..."
+                          : dz.totals.uploaded === 0
+                            ? "Ajoutez au moins un media pour passer a l'etape 4."
+                            : null}
+                      </p>
+
+                      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#020202]/90 px-4 py-4 backdrop-blur-xl md:px-8">
+                        <div className="mx-auto flex max-w-xl gap-3">
+                          <button
+                            type="button"
+                            onClick={goBack}
+                            className="font-[family-name:var(--font-label)] min-h-[52px] flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-base font-normal text-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.09]"
+                          >
+                            {copy.back}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={goNext}
+                            disabled={isStep3Locked}
+                            className="font-[family-name:var(--font-label)] min-h-[52px] flex-[1.35] rounded-2xl border border-white/12 bg-white/[0.08] px-4 text-base font-normal text-zinc-50 shadow-[0_0_24px_rgba(167,139,250,0.12)] transition-colors hover:bg-white/[0.11] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                          >
+                            {copy.next}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  );
+                }}
+              </MediaDropzoneAdapter>
             </>
           ) : null}
 
@@ -693,40 +740,42 @@ export function TributeWizard({ copy }: { copy: TributeWizardCopy }) {
         </div>
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#020202]/90 px-4 py-4 backdrop-blur-xl md:px-8">
-        <div className="mx-auto flex max-w-xl gap-3">
-          {currentStep > 1 ? (
-            <button
-              type="button"
-              onClick={goBack}
-              className="font-[family-name:var(--font-label)] min-h-[52px] flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-base font-normal text-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.09]"
-            >
-              {copy.back}
-            </button>
-          ) : (
-            <span className="min-h-[52px] flex-1" aria-hidden />
-          )}
+      {currentStep !== 3 ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#020202]/90 px-4 py-4 backdrop-blur-xl md:px-8">
+          <div className="mx-auto flex max-w-xl gap-3">
+            {currentStep > 1 ? (
+              <button
+                type="button"
+                onClick={goBack}
+                className="font-[family-name:var(--font-label)] min-h-[52px] flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-base font-normal text-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.09]"
+              >
+                {copy.back}
+              </button>
+            ) : (
+              <span className="min-h-[52px] flex-1" aria-hidden />
+            )}
 
-          {currentStep < TOTAL_STEPS ? (
-            <button
-              type="button"
-              onClick={goNext}
-              className="font-[family-name:var(--font-label)] min-h-[52px] flex-[1.35] rounded-2xl border border-white/12 bg-white/[0.08] px-4 text-base font-normal text-zinc-50 shadow-[0_0_24px_rgba(167,139,250,0.12)] transition-colors hover:bg-white/[0.11]"
-            >
-              {copy.next}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={finish}
-              disabled={!selectedMood}
-              className="font-[family-name:var(--font-label)] min-h-[52px] flex-[1.35] rounded-2xl border border-teal-400/30 bg-teal-950/35 px-4 text-base font-normal text-teal-50 shadow-[0_0_28px_rgba(45,212,191,0.35)] transition-[background,box-shadow,opacity] hover:bg-teal-900/40 hover:shadow-[0_0_40px_rgba(34,211,238,0.38)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
-            >
-              {copy.finishCta}
-            </button>
-          )}
+            {currentStep < TOTAL_STEPS ? (
+              <button
+                type="button"
+                onClick={goNext}
+                className="font-[family-name:var(--font-label)] min-h-[52px] flex-[1.35] rounded-2xl border border-white/12 bg-white/[0.08] px-4 text-base font-normal text-zinc-50 shadow-[0_0_24px_rgba(167,139,250,0.12)] transition-colors hover:bg-white/[0.11]"
+              >
+                {copy.next}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={finish}
+                disabled={!selectedMood}
+                className="font-[family-name:var(--font-label)] min-h-[52px] flex-[1.35] rounded-2xl border border-teal-400/30 bg-teal-950/35 px-4 text-base font-normal text-teal-50 shadow-[0_0_28px_rgba(45,212,191,0.35)] transition-[background,box-shadow,opacity] hover:bg-teal-900/40 hover:shadow-[0_0_40px_rgba(34,211,238,0.38)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+              >
+                {copy.finishCta}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
