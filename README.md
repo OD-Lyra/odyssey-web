@@ -8,9 +8,11 @@ Application Next.js 14 (App Router) pour le Studio Odyssey:
 
 ## Documentation principale
 
-- Onboarding technique: `docs/TECHNICAL_ONBOARDING_ODYSSEY.md`
-- Conventions: `docs/CONVENTIONS.md`
-- Vision produit: `docs/Manifesto-V10.4.md`
+| Document | Contenu |
+|----------|---------|
+| `docs/TECHNICAL_ONBOARDING_ODYSSEY.md` | **Document central:** stack, structure repo, fait / a terminer, **moteur video** + positionnement haut de gamme, **potentiel & adoption**, upsells, **securite P0–P2**, elevation produit, multi-skins, isolation medias, regles d'equipe — **sommaire en tete de fichier**. |
+| `docs/CONVENTIONS.md` | Conventions de code (anglais, brain vs engine). |
+| `docs/Manifesto-V10.4.md` | Vision produit manifeste. |
 
 ## Quickstart
 
@@ -44,7 +46,16 @@ Principe produit a maintenir:
 
 ## A developper (resume)
 
-Roadmap detaillee dans `docs/TECHNICAL_ONBOARDING_ODYSSEY.md` (section 10).
+**Source unique:** `docs/TECHNICAL_ONBOARDING_ODYSSEY.md` — **section 10** (+ sommaire du meme fichier pour navigation).
+
+Chapitres couverts par la roadmap documentaire:
+
+- **A terminer / consolider** (checkout, rendu, tests, monitoring, SQL versionne).
+- **Architecture moteur video** (orchestration outil tiers, webhooks, idempotence).
+- **Positionnement haut de gamme** & **Potentiel marche / leviers adoption** (10 leviers + synthese penetration).
+- **Upsells wizard** (Stripe-First, conformite sources tierces).
+- **Securite** P0 → P2.
+- **Elevation produit** P1 / P2 (fiabilite, rendu, conformite, partenaires).
 
 **Upsells prevus dans le wizard** (a brancher au catalogue Stripe):
 - retouche photo / video assistee par IA,

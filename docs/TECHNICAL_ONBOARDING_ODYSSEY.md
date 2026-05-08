@@ -8,6 +8,22 @@ Ce document permet a n'importe quel developpeur (frontend, backend, DevOps, QA) 
 
 ---
 
+## Sommaire
+
+Recherche rapide: les titres sont prefixes **## N)** dans ce fichier.
+
+| Section | Contenu |
+|---------|---------|
+| **1–3** | Contexte, stack, structure du repo |
+| **4** | Fonctions deja implementees (auth, wizard, upload, webhook Stripe) |
+| **5** | Modeles de donnees (projects, orders, billing_catalog, webhook_events, media) |
+| **6–8** | Variables d'environnement, scripts, lancement local |
+| **9** | Check-list Vercel / GitHub |
+| **10** | **Roadmap centralisee:** fait; a terminer; **moteur video** (architecture + positionnement haut de gamme + potentiel / adoption); upsells wizard; securite P0–P2; elevation produit |
+| **11–14** | Multi-skins; isolation medias entre cibles; regles d'equipe; notes |
+
+---
+
 ## 1) Contexte du projet
 
 Odyssey est une application Next.js 14 (App Router) avec:
@@ -247,6 +263,16 @@ Le luxe percu ne repose pas sur une seule API, mais sur **trois piliers**: quali
 4. **Preuve sociale:** exemples video (avec consentement), temoignages, partenaires identifiables.
 5. **Canaux B2B2C:** partenaires qui introduisent le service au bon moment reduisent l'effort marketing direct et augmentent la conversion contextuelle.
 6. **Support humain sur incidents:** en segment sensible, la qualite du recours en cas d'echec compte autant que le rendu.
+7. **Qualite visible en quelques secondes:** demos ou extraits courts (avec consentement) pour que l'utilisateur projette immediatement le resultat ("je veux ca pour lui/elle").
+8. **Angoisse technique zero:** libelles et messages orientes utilisateur (pas de codes d'erreur bruts); aide contextuelle sur upload et delais.
+9. **Transparence avant paiement:** prix total comprehensible, delai de livraison annonce, lignes upsell optionnelles explicites (droits, HD, express).
+10. **Parcours "decisions progressives":** peu de choix au debut pour obtenir un resultat satisfaisant; affiner ensuite (aligne avec "premier succes rapide").
+
+**Synthese strategique (penetration marche):**
+
+- La **penetration** (volume d'usage) depend autant de la **distribution** (partenaires, canaux, moment de vie) que du produit seul.
+- Maximiser l'adoption ne veut pas dire empiler des fonctionnalites: une combinaison **parcours sobre sous stress emotionnel** + **confiance** + **acces par des tiers de confiance** est souvent plus efficace qu'une liste longue d'options.
+- Les **budgets** et la sensibilite au contexte culturel varient: la roadmap doit rester **testable** (hypotheses validees par donnees funnel et entretiens).
 
 ### A developper - Upsells dans le wizard (parcours produit)
 
@@ -413,5 +439,6 @@ Regles a respecter pour la suite multi-cibles:
 
 ## 14) Notes importantes
 
-- Le `README.md` racine donne le quickstart et resume la vision; le detail architecture et roadmap (technique, securite, elevation produit) est dans ce document (`docs/TECHNICAL_ONBOARDING_ODYSSEY.md`).
+- Le `README.md` racine donne le quickstart, l'index resume et la vision; le **detail complet** (architecture, roadmap, securite, moteur video, adoption, upsells) est dans ce document — voir le **Sommaire** en tete de fichier.
+- Les sous-sections de la **section 10** constituent la **reference unique** pour tout ce qui est "a developper" ou "a terminer" jusqu'a revision produit.
 
