@@ -51,3 +51,5 @@ Roadmap detaillee dans `docs/TECHNICAL_ONBOARDING_ODYSSEY.md` (section 10).
 - musique premium et ligne **frais / droits d'auteur** selon la licence choisie,
 - **signature de responsabilite** lorsque des sources tierces sont utilisees (ex: YouTube, imports URL),
 - autres options (HD, delai express, packaging): meme principe Stripe-First + trace dans `orders`.
+
+**Securite (roadmap):** defense en profondeur — RLS, validation serveur, rate limiting, headers, secrets, audit dependances, monitoring; voir le tableau detaille dans `docs/TECHNICAL_ONBOARDING_ODYSSEY.md` (section 10, sous-partie securite).

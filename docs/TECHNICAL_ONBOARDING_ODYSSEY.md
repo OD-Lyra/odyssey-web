@@ -201,6 +201,28 @@ Objectif: enrichir le Tribute Wizard avec des options payantes coherentes avec l
 
 Detail complet des autres chantiers: voir aussi **A terminer / consolider** ci-dessus.
 
+### A developper - Securite et resilience (objectif maximal, pas de promesse absolue)
+
+**Constat honnete:** aucun systeme connecte n'est mathematiquement **impénétrable**. L'objectif produit est une posture **defense en profondeur**: reduire la surface d'attaque, limiter l'impact d'un incident, detecter et reagir vite.
+
+**Piliers a developper et maintenir:**
+
+| Domaine | Actions concretes |
+|---------|-------------------|
+| **Identite et session** | MFA pour comptes sensibles (roadmap), sessions courtes / renouvellement securise (cookies Supabase SSR), revision des redirections auth. |
+| **Base et acces donnees** | **RLS** strict sur toutes les tables exposees; principe du moindre privilege; **service role** uniquement cote serveur isole (webhooks, jobs); revues regulieres des policies. |
+| **Stockage medias** | Politiques bucket Storage alignees sur `project_id` / tenant; pas d'acces public large par defaut; URLs signees si exposition temporaire necessaire. |
+| **API Next.js** | Validation stricte des entrees (schemas Zod ou equivalent); **autorisation** sur chaque route (pas seulement auth); verification que `project_id` appartient bien a l'utilisateur. |
+| **Limitation d'abus** | Rate limiting sur routes sensibles (login, upload, checkout, webhook tests non-prod); protection distribuee (ex: Edge middleware + stockage KV si besoin). |
+| **Paiements Stripe** | Webhook uniquement avec signature verifiee (deja); pas de montants clients-side sans reconciliation catalogue; rotation des secrets Stripe. |
+| **Navigateur et transport** | Headers securite (`Content-Security-Policy`, `Strict-Transport-Security`, protection clickjacking) via `next.config`; cookies `Secure`/`HttpOnly` selon conventions framework. |
+| **Secrets et configuration** | Jamais de secrets dans le repo; rotation periodique; environnements separes (preview/prod); audit des variables Vercel. |
+| **Dependances et supply chain** | `npm audit`, Dependabot / Renovate, revue des maj critiques; politique de versions figees pour prod. |
+| **Observabilite et reponse** | Logs structures sans donnees sensibles; alertes sur erreurs auth / webhook / spike traffic; playbook incident (desactivation cle, revoke tokens). |
+| **Verification externe** | Pentest reccurent ou bug bounty cible; checklist OWASP ASVS pour les modules critiques (upload, paiement, donnees personnelles). |
+
+**Principe directeur:** chaque couche peut etre contournee individuellement; la combinaison **auth + RLS + validation serveur + limitation de debit + secrets + monitoring** rend les attaques **beaucoup plus couteuses** et detectables — c'est la posture professionnelle attendue pour des donnees personnelles et du paiement.
+
 ---
 
 ## 11) Vision produit extensible (multi-skins, moteur unique)
