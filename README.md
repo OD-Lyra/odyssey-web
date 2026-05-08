@@ -41,3 +41,13 @@ Principe actuel:
 Principe produit a maintenir:
 - aucune cible ne doit partager les medias d'une autre cible,
 - toute nouvelle verticale doit garder une isolation explicite (projet/tenant/cible) dans storage + DB + policies.
+
+## A developper (resume)
+
+Roadmap detaillee dans `docs/TECHNICAL_ONBOARDING_ODYSSEY.md` (section 10).
+
+**Upsells prevus dans le wizard** (a brancher au catalogue Stripe):
+- retouche photo / video assistee par IA,
+- musique premium et ligne **frais / droits d'auteur** selon la licence choisie,
+- **signature de responsabilite** lorsque des sources tierces sont utilisees (ex: YouTube, imports URL),
+- autres options (HD, delai express, packaging): meme principe Stripe-First + trace dans `orders`.

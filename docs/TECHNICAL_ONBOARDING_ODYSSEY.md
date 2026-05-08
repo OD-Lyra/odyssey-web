@@ -180,6 +180,27 @@ Si "No git repositories found": c'est en general un probleme de permissions GitH
 - Monitoring centralise (traces/alerting) et tableaux de bord d'exploitation.
 - Documentation SQL "source de verite" versionnee (migrations finalisees).
 
+### A developper - Upsells dans le wizard (parcours produit)
+
+Objectif: enrichir le Tribute Wizard avec des options payantes coherentes avec le modele **Stripe-First** et le mix **base + upsells** (B2C / B2B2C).
+
+**Exemples d'upsells a concevoir dans l'UX et brancher au catalogue Stripe:**
+
+| Upsell (concept) | Role UX | Notes techniques / conformite |
+|------------------|---------|--------------------------------|
+| **Retouche photo / video assistee par IA** | Etape dediee ou bloc optionnel apres selection des medias (qualite, stabilisation, restauration legere, etc.) | Prix Stripe par niveau ou par lot; flags projet (`ai_enhancement_*`); job async post-upload si besoin. |
+| **Musique premium / bande son etendue** | Etendre l'etape "Musical Ambiance" avec tires payants | Alignement `billing_catalog` + metadata `odyssey_code`; respect du modele hybride (base prepayee partenaire vs upsell famille). |
+| **Frais droits d'auteur / licence musicale** | Ligne claire au checkout ou sous-etape "Licence" lors du choix musique tierce | Snapshot pricing dans `orders` / metadata legale; pas de melange avec des prix "creatifs" sans licence. |
+| **Sources tierces (YouTube, reseaux, Google Photos)** | Si l'utilisateur importe depuis YouTube ou URLs: **signature de responsabilite / declaration** | Checkbox obligatoire + horodatage + stockage sur `projects` (metadata ou colonnes dediees); copy i18n FR/EN; bloquer le passage suivant sans acceptation. |
+| **Autres upsells** | Packaging HD, duree video etendue, rush delivery, copies supplementaires, cartes imprimees, etc. | Meme principe: ligne Stripe identifiable, trace dans `orders.upsell_breakdown`, pas de logique en dur hors catalogue. |
+
+**Principes d'implementation:**
+- Chaque upsell vendable = **Price Stripe** reference dans `billing_catalog` avec metadata stable (`odyssey_code`, `item_type`).
+- Le wizard affiche et valide les options; le serveur reconstruit la session Checkout a partir du catalogue (pas de prix client-only).
+- Les acceptations legales (YouTube, droits image, musique) restent **persistees** et liees au `project_id`.
+
+Detail complet des autres chantiers: voir aussi **A terminer / consolider** ci-dessus.
+
 ---
 
 ## 11) Vision produit extensible (multi-skins, moteur unique)
@@ -233,5 +254,5 @@ Regles a respecter pour la suite multi-cibles:
 
 ## 14) Notes importantes
 
-- Le `README.md` racine mentionne une structure monorepo historique qui peut preter a confusion avec l'etat actuel. Ce document (`docs/TECHNICAL_ONBOARDING_ODYSSEY.md`) est la reference onboarding pour le scope Odyssey frontend actuel.
+- Le `README.md` racine donne le quickstart et resume la vision; le detail architecture et roadmap est dans ce document (`docs/TECHNICAL_ONBOARDING_ODYSSEY.md`).
 
