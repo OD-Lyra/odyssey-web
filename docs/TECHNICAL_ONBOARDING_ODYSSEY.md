@@ -249,6 +249,49 @@ Ces points sont les **fondations**; sans eux, le risque jurisprudentiel et techn
 | Observabilite et reponse | P1 logs; P2 playbook |
 | Verification externe | P2 pentest / OWASP ASVS cible |
 
+### A developper - Elevation produit et confiance (roadmap)
+
+**Portee:** uniquement preparation et priorisation pour les prochaines etapes — **aucune implementation n'est engagee par ce document.**
+
+Objectif: completer la roadmap technique (checkout, rendu, securite) par les chantiers qui augmentent le plus la **valeur percue**, la **confiance**, et la **scalabilite** partenaire.
+
+#### Priorite P1 — Fiabilite et experience utilisateur (fort impact / fondations emotionnelles)
+
+1. **Statuts projet lisibles** tout au long du parcours (upload, paiement, file d'attente rendu, livraison) avec libelles humains.
+2. **Notifications** aux jalons critiques (echec upload, paiement confirme, video prete, erreur rendu) — email minimum, SMS ulterieur si pertinent.
+3. **Reprise de parcours** sans tout recommencer (wizard / uploads partiels / erreurs reseau).
+4. **Engagement sur les delais** (fourchette ou SLA honnete selon charge / type de rendu).
+
+#### Priorite P1 — Qualite du rendu video (coeur de la promesse)
+
+5. **Previsualisation / validation narrative** avant rendu final (storyboard, ordre des sequences, ton general).
+6. **Templates limites mais exemplaires** plutot que volume d'options faibles (qualite percue > nombre de boutons).
+7. **Controles legers**: ordre des clips, titre, sous-titres optionnels — sans transformer en suite de montage pro.
+
+#### Priorite P1 — Conformite et reputation (medias tiers)
+
+8. **Journal des consentements** (YouTube, droits image, musique) horodatable et exportable si besoin.
+9. **Politique de retention / RGPD**: duree des medias, telechargement, suppression — alignee produit + technique.
+
+#### Priorite P2 — Partenaires et diffusion (B2B2C)
+
+10. **Espace partenaire minimal**: jetons, projets, statut — meme MVP tableau / CSV.
+11. **White-label leger**: logo / emails famille depuis branding partenaire (sans refonte totale au debut).
+12. **Metriques simples**: conversion wizard, upsells, volumes — pour ajuster l'offre.
+
+#### Priorite P2 — Observabilite produit et differentiation premium
+
+13. **Instrumentation funnel**: ou abandonne-t-on (wizard, checkout, rendu) — complementaire aux logs techniques.
+14. **Feature flags** pour activer verticale ou upsell sans deploy lourd.
+15. **Differentiation premium ulterieure**: lien partage securise, telechargement HD, QR ceremonie; option future "review humaine" monteur.
+
+#### Ordre suggere (apres la roadmap technique deja listee en section 10)
+
+1. Statuts + notifications + reprise parcours (**P1 UX**).
+2. Preview / validation narrative avant rendu final (**P1 rendu**).
+3. Journal consentements + retention (**P1 conformite**).
+4. Funnel produit + espace partenaire minimal (**P2 croissance**).
+
 ---
 
 ## 11) Vision produit extensible (multi-skins, moteur unique)
@@ -302,5 +345,5 @@ Regles a respecter pour la suite multi-cibles:
 
 ## 14) Notes importantes
 
-- Le `README.md` racine donne le quickstart et resume la vision; le detail architecture et roadmap est dans ce document (`docs/TECHNICAL_ONBOARDING_ODYSSEY.md`).
+- Le `README.md` racine donne le quickstart et resume la vision; le detail architecture et roadmap (technique, securite, elevation produit) est dans ce document (`docs/TECHNICAL_ONBOARDING_ODYSSEY.md`).
 
