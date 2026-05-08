@@ -19,7 +19,7 @@ Recherche rapide: les titres sont prefixes **## N)** dans ce fichier.
 | **5** | Modeles de donnees (projects, orders, billing_catalog, webhook_events, media) |
 | **6–8** | Variables d'environnement, scripts, lancement local |
 | **9** | Check-list Vercel / GitHub |
-| **10** | **Roadmap centralisee:** fait; a terminer; **moteur video** (architecture + positionnement haut de gamme + potentiel / adoption + **croissance virale / partage**); upsells wizard; securite P0–P2; elevation produit |
+| **10** | **Roadmap centralisee:** fait; a terminer; **moteur video** (architecture + positionnement + adoption + **croissance virale** + **verticaliste animaux**); upsells wizard; securite P0–P2; elevation produit |
 | **11–14** | Multi-skins; isolation medias entre cibles; regles d'equipe; notes |
 
 ---
@@ -299,6 +299,44 @@ Le luxe percu ne repose pas sur une seule API, mais sur **trois piliers**: quali
 - Taux de generation de **lien de partage** active par rapport aux projets livres.
 - **Referrals** attribues (codes partenaires / campagne Stripe).
 - Part des projets **issus d'un partenaire** vs organique.
+
+**Leviers supplementaires (meme ethique — doc uniquement):**
+
+- **Co-creation limitee:** inviter un petit cercle (ex. 3–8 personnes) a ajouter **une photo** et **un souvenir court**, avec **validation** par le createur du projet avant inclusion — augmente naturellement les points de contact sans popups "parrainez".
+- **Derive "reseaux natifs":** export ou rendu **court vertical** (Stories / Reels) en complement du master — souvent ce qui est partage publiquement; le long format reste plus intime.
+- **Objet physique du rituel:** QR sur livret, urne animaliere, carte de remerciement clinique — viralite **dans la piece** (meme logique que programme funeraire humain).
+- **Premiere "famille / meute":** lien prive court avant tout partage large — bouche-a-oreille controle parmi le cercle intime.
+
+#### Croissance virale — verticaliste animaux (cible specifique — doc uniquement)
+
+**Contexte:** la perte d'un animal est intime mais les proprietaires partagent souvent **plus volontiers** du contenu animalier sur les reseaux (avec nuances culturelles). La viralite doit rester **respectueuse** (pas exploiter la douleur; pas comparer a un deces humain dans la communication).
+
+**Partenaires B2B2C adaptes:**
+
+- Cliniques veterinaires, urgences vet, crematoriums animaliers, salons de toilettage, boutiques specialistes, comportementalistes, assurances animaux.
+- Refuges / associations: **hommages pour adoption memorielle** ou campagnes de sensibilisation — boucle de notoriete positive si le ton reste digne.
+
+**Formats et lieux de diffusion:**
+
+- **Templates et tonalite** dedies (paws, moments quotidiens, sillons de promenade) sans infantiliser la douleur.
+- **Clip court vertical** tres efficace pour cette cible (habitudes de partage photo/video d'animaux).
+- **QR** sur urne, plaquette memorial, carte remerciement vet — toucher les proches presents au moment du recueillement ou du dernier rendez-vous.
+
+**Communautes (avec menagement):**
+
+- Groupes de soutien / memoire animaliere en ligne — presence **utile** (guides, ressources) plutot que pub intrusive.
+- Hashtags commemoratifs **optionnels** et controle par la famille (jamais imposes).
+
+**Idees produit "douces" propres aux animaux:**
+
+- **Album invite:** meme principe co-creation (amis du parc, famille) avec moderation.
+- **Calendrier souvenir** (upsell physique ou numerique) — partage saisonnier naturel.
+- **Lien don symbolique** vers refuge ou cause animale choisie par la famille — partage altruiste.
+
+**Pieges specifiques animaux:**
+
+- Eviter memes / ton **inapproprie** sur la mort d'un compagnon.
+- Respect des **droits image** si photos tierces (autres proprietaires au parc).
 
 ### A developper - Upsells dans le wizard (parcours produit)
 
