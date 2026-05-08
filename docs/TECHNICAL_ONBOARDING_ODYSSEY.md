@@ -19,7 +19,7 @@ Recherche rapide: les titres sont prefixes **## N)** dans ce fichier.
 | **5** | Modeles de donnees (projects, orders, billing_catalog, webhook_events, media) |
 | **6–8** | Variables d'environnement, scripts, lancement local |
 | **9** | Check-list Vercel / GitHub |
-| **10** | **Roadmap centralisee:** fait; a terminer; **moteur video** (architecture + positionnement haut de gamme + potentiel / adoption); upsells wizard; securite P0–P2; elevation produit |
+| **10** | **Roadmap centralisee:** fait; a terminer; **moteur video** (architecture + positionnement haut de gamme + potentiel / adoption + **croissance virale / partage**); upsells wizard; securite P0–P2; elevation produit |
 | **11–14** | Multi-skins; isolation medias entre cibles; regles d'equipe; notes |
 
 ---
@@ -273,6 +273,32 @@ Le luxe percu ne repose pas sur une seule API, mais sur **trois piliers**: quali
 - La **penetration** (volume d'usage) depend autant de la **distribution** (partenaires, canaux, moment de vie) que du produit seul.
 - Maximiser l'adoption ne veut pas dire empiler des fonctionnalites: une combinaison **parcours sobre sous stress emotionnel** + **confiance** + **acces par des tiers de confiance** est souvent plus efficace qu'une liste longue d'options.
 - Les **budgets** et la sensibilite au contexte culturel varient: la roadmap doit rester **testable** (hypotheses validees par donnees funnel et entretiens).
+
+#### Croissance "virale" et partage (ethique & product — doc uniquement)
+
+**Portee:** piste de reflexion pour la diffusion organique — **aucune implementation n'est engagee**; le contexte (deuil, hommage, intimite) **interdit** les tactiques agressives type "growth hack" insensible.
+
+**Definition pratique du "viral" ici:** ce n'est pas une courbe exponentielle de type reseau social, mais une **diffusion par recommandation et partage authentique** apres une experience reussie: proches, invites, partenaires (funeraires, soignants, traiteurs) qui decouvrent une qualite memorable au bon moment.
+
+**Boucles organiques plausibles:**
+
+1. **Sortie remarquable:** une video ou un montage si fort emotionnellement que la famille **choisit** de la diffuser (ceremonie, reunion privee, QR programme papier) — le produit devient sa propre pub si la qualite suit le positionnement haut de gamme.
+2. **Lien de visionnage digne:** page ou lien **respectueux** (pas de pub intrusive sur la video sensible), options **prive / liste restreinte / avec consentement familial**, meta OG sobres si partage public autorise expressement.
+3. **Parrainage mesure:** credits ou avantages pour un **prochain** projet hommage — formulation discrete ("offrir a une autre famille") plutot que gamification criarde.
+4. **Canal partenaire = levier viral controle:** le partenaire presente Odyssey comme **service recommande** au moment critique — la "viralite" est alors **pilotee et contextualisee**, pas virale au sens TikTok.
+5. **Preuve douce:** avec consentement ecrit, **extraits** ou temoignages sur le site marketing — jamais sans validation famille/partenaire.
+
+**Pieges a eviter (non negociable produit):**
+
+- Sollicitations partage / parrainage au milieu du **parcours de creation** sous stress.
+- Publication automatique sur reseaux sans **double confirmation** et comprehension des droits image.
+- Watermarks voyants ou branding qui **degrade** un hommage payant (discuter en upsell "sans logo" vs inclus selon positionnement marque).
+
+**Indicateurs (a definir en analytics sans exposer donnees personnelles):**
+
+- Taux de generation de **lien de partage** active par rapport aux projets livres.
+- **Referrals** attribues (codes partenaires / campagne Stripe).
+- Part des projets **issus d'un partenaire** vs organique.
 
 ### A developper - Upsells dans le wizard (parcours produit)
 
