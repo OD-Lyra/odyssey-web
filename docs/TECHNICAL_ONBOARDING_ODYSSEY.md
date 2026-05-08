@@ -180,6 +180,38 @@ Si "No git repositories found": c'est en general un probleme de permissions GitH
 - Monitoring centralise (traces/alerting) et tableaux de bord d'exploitation.
 - Documentation SQL "source de verite" versionnee (migrations finalisees).
 
+### Architecture cible — Moteur video (outillage existant)
+
+**Portee:** description pour preparer les etapes suivantes — **choix d'outil precis et integrations restent a finaliser**; ce bloc fixe l'intention architecturelle.
+
+**Principe:** ne pas reconstruire un pipeline d'encodage maison pour le MVP. L'approche retenue est **orchestration**: notre stack declenche et suit un rendu realise par un **service externe base templates** (dans la lignée du projet: API type **Creatomate**, ou equivalent SaaS API-driven).
+
+**Flux fonctionnel (ordre logique):**
+
+1. Paiement confirme (webhook Stripe deja en place) ou statut projet `paid` / equivalent.
+2. **Enqueue** d'un job de rendu cote serveur (route dediee, job queue, ou fonction edge selon choix infra — a arbitrer).
+3. Appel serveur-securise vers l'API du fournisseur de rendu: template ID, URLs medias (Supabase Storage signees ou IDs connus), parametres texte/musique/duree.
+4. Le fournisseur rend la video de facon asynchrone.
+5. **Callback / webhook** fournisseur → notre backend (handler dedie, verification signature si fournie par le vendeur) → mise a jour `projects` (ex: `completed`, URL fichier final, erreurs).
+6. Notification utilisateur (email / in-app) alignee avec la roadmap "Elevation produit".
+
+**Composants typiques (sans prescrire le runtime exact):**
+
+| Role | Responsabilite |
+|------|----------------|
+| Etat projet + medias | Supabase (`projects`, `media_assets`, statuts rendu). |
+| Secrets API rendu | Variables env serveur uniquement (Vercel / fonctions), jamais expose client. |
+| Orchestrateur | Code serveur qui enfile le job et gere retries / idempotence sur le **webhook de fin de rendu**. |
+| Rendu video | Service tiers (templates, transitions, audio) — Creatomate ou **equivalent** (Shotstack, Remotion Cloud, etc.) selon criteres prix/latence/support. |
+
+**Points critiques a traiter lors de l'implementation:**
+
+- **Idempotence** sur le webhook "render completed" (comme pour Stripe: pas de double livraison).
+- **Timeouts et erreurs**: statuts `render_failed`, retry limite, logs exploitables.
+- **Couts**: duree video, resolution, stockage sortie — alignement avec upsells et catalogue Stripe.
+
+**Lien avec le reste de la doc:** la qualite percue (preview, templates, section "Elevation produit") conditionne les parametres envoyes au moteur; la securite (P0) impose que seuls les medias du bon `project_id` soient references dans le job.
+
 ### A developper - Upsells dans le wizard (parcours produit)
 
 Objectif: enrichir le Tribute Wizard avec des options payantes coherentes avec le modele **Stripe-First** et le mix **base + upsells** (B2C / B2B2C).
