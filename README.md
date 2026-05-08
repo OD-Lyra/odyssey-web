@@ -1,27 +1,43 @@
-# Odyssey Monorepo
+# Odyssey Frontend
 
-This repository is organized as a monorepo:
+Application Next.js 14 (App Router) pour le Studio Odyssey:
+- authentification Supabase,
+- wizard de creation,
+- ingestion media massive,
+- pipeline Stripe (catalog + webhook robuste).
 
-- `web/`: Next.js 14 (App Router) frontend
-- `app/`: Python 3.11 + FastAPI backend
-- `docs/`: Product/architecture documentation (Manifesto V10.4)
+## Documentation principale
+
+- Onboarding technique: `docs/TECHNICAL_ONBOARDING_ODYSSEY.md`
+- Conventions: `docs/CONVENTIONS.md`
+- Vision produit: `docs/Manifesto-V10.4.md`
 
 ## Quickstart
 
-### Web
-
 ```bash
-cd web
 npm install
 npm run dev
 ```
 
-### App
+Build de verification (comme en deploiement):
 
 ```bash
-cd app
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+npm run build
 ```
+
+## Vision architecture
+
+Le projet suit une strategie **moteur unique + multi-skins**:
+- une base metier commune (auth, medias, paiements, rendu),
+- plusieurs experiences cibles (famille, animaux, mariage, fete, etc.),
+- adaptation du branding/copy sans fork de logique coeur.
+
+## Isolation des medias entre cibles
+
+Principe actuel:
+- separation forte par `project_id` (storage path + DB),
+- `tenant_id` disponible pour renforcer la segmentation.
+
+Principe produit a maintenir:
+- aucune cible ne doit partager les medias d'une autre cible,
+- toute nouvelle verticale doit garder une isolation explicite (projet/tenant/cible) dans storage + DB + policies.
