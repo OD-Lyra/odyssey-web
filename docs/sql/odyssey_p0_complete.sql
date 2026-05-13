@@ -183,6 +183,9 @@ CREATE POLICY media_assets_update_owner_project
 
 -- ---------------------------------------------------------------------------
 -- 8) Storage — bucket user-assets, chemin projects/{project_id}/...
+--     Si 42501 « must be owner of table objects » ici : le rôle SQL Editor
+--     n’est pas propriétaire de storage.objects — créer les mêmes policies via
+--     Dashboard → Storage → user-assets → Policies (équivalent SQL).
 -- ---------------------------------------------------------------------------
 
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
@@ -244,13 +247,25 @@ GRANT SELECT, INSERT, UPDATE ON TABLE public.media_assets TO authenticated;
 --   Dashboard → Storage → Policies (pas de GRANT manuel requis ici).
 
 -- ---------------------------------------------------------------------------
--- 10) service_role — tables public (webhooks / jobs ; ne pas être bloqué par REVOKE ciblés)
---      Élargit les privilèges sur TOUTES les tables existantes du schéma public.
---      Les nouvelles tables créées après ce script : re-exécuter ce GRANT ou
---      utiliser ALTER DEFAULT PRIVILEGES (hors scope MVP).
+-- 10) service_role — privilèges explicites (évite GRANT ALL ON ALL TABLES IN SCHEMA public)
+--     qui peut toucher des relations public.* dont tu n’es pas owner → 42501.
+--     Ajouter ici toute nouvelle table métier + rejouer ce bloc après migration.
 -- ---------------------------------------------------------------------------
 
-GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL ON TABLE public.projects TO service_role;
+GRANT ALL ON TABLE public.orders TO service_role;
+GRANT ALL ON TABLE public.media_assets TO service_role;
+
+DO $$
+BEGIN
+  IF to_regclass('public.billing_catalog') IS NOT NULL THEN
+    EXECUTE 'GRANT ALL ON TABLE public.billing_catalog TO service_role';
+  END IF;
+  IF to_regclass('public.webhook_events') IS NOT NULL THEN
+    EXECUTE 'GRANT ALL ON TABLE public.webhook_events TO service_role';
+  END IF;
+END;
+$$;
 
 -- =============================================================================
 -- Fin — Tests : upload projects/{own_project_id}/... ; 2 comptes ; webhook.
