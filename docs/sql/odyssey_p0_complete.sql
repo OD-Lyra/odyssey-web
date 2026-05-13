@@ -1,41 +1,35 @@
 -- =============================================================================
--- ⚠️  Supersédé par : docs/sql/odyssey_p0_complete.sql
---     (création MVP orders + RLS + Storage + GRANT service_role)
---     Conserver ce fichier seulement pour historique / diff.
--- =============================================================================
--- Odyssey — P0 durcissement : RLS (projects, orders, media_assets) + Storage
--- Exécution : Supabase SQL Editor (pas de CREATE INDEX CONCURRENTLY)
+-- Odyssey — P0 Complete (MVP orders + RLS + Storage + Grants)
+-- Fichier : odyssey_p0_complete.sql
 --
--- --- Double vérification (code source repo odyssey-frontend) ----------------
--- media_assets.liaison projet : colonne **project_id** — CONFIRMÉE
---   → src/lib/uploads/mediaUploadService.ts : cle `project_id`, upsert
---     onConflict: "project_id,storage_path"
--- Storage (prefixe objet) : **projects/** (sans slash initial dans `name`)
---   → buildStoragePath() retourne :
---     `projects/${projectId}/${yyyy}/${mm}/${dd}/...`
---   → Les policies utilisent (storage.foldername(name))[1] = 'projects'
---     et [2] = UUID projet — COHÉRENT avec le front.
--- public.orders : **aucune** requête `.from("orders")` dans ce dépôt ;
---   pas de dossier supabase/migrations ici. La colonne **project_id** est
---   l'hypothèse architecture (B2C / webhook). Avant prod, valider en SQL :
---   SELECT column_name FROM information_schema.columns
---   WHERE table_schema = 'public' AND table_name = 'orders';
---   Si le nom diffère (ex. project_uuid), remplacer orders.project_id dans
---   ce script par le nom réel.
+-- Prérequis : tables public.projects et public.media_assets existent déjà
+--   avec colonnes attendues (projects.id, projects.user_id ; media_assets.project_id).
+-- Si public.orders existe déjà avec un schéma différent, CREATE IF NOT EXISTS
+--   ne modifie rien : valider le schéma avant exécution.
 --
--- Hypothèses schéma (reste inchangé si la validation ci-dessus OK) :
---   public.projects(id, user_id, ...)  — propriétaire = user_id = auth.uid()
---   public.orders(project_id → projects.id)
---   public.media_assets(project_id → projects.id)
---   Bucket Storage : user-assets
---   Préfixe objets : projects/{project_id}/...
---
--- Service Role : contourne RLS (webhooks / API serveur) — ne pas révoquer
---   ses droits ; ce script cible surtout authenticated + anon.
+-- Après exécution : nettoyer les policies Storage résiduelles trop larges
+--   sur le bucket user-assets (RLS permissif = OR entre policies).
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
--- 1) Index (performance sous RLS / EXISTS)
+-- 1) MVP — public.orders (si absent)
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public.orders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id uuid NOT NULL REFERENCES public.projects (id) ON DELETE RESTRICT,
+  stripe_session_id text UNIQUE,
+  amount_total integer,
+  currency text NOT NULL DEFAULT 'CAD',
+  status text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON COLUMN public.orders.amount_total IS 'Montant en minor units (ex. cents), aligné Stripe.';
+COMMENT ON COLUMN public.orders.stripe_session_id IS 'Stripe Checkout Session id (cs_...), unique si présent.';
+
+-- ---------------------------------------------------------------------------
+-- 2) Index performance (sans CONCURRENTLY)
 -- ---------------------------------------------------------------------------
 
 CREATE INDEX IF NOT EXISTS idx_projects_user_id
@@ -48,7 +42,7 @@ CREATE INDEX IF NOT EXISTS idx_media_assets_project_id
   ON public.media_assets (project_id);
 
 -- ---------------------------------------------------------------------------
--- 2) RLS : activation
+-- 3) RLS — activation
 -- ---------------------------------------------------------------------------
 
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
@@ -56,7 +50,7 @@ ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.media_assets ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------------------------
--- 3) RLS : suppression des anciennes policies (noms stables — idempotent)
+-- 4) RLS — idempotence (drop policies nommées)
 -- ---------------------------------------------------------------------------
 
 DROP POLICY IF EXISTS projects_select_owner ON public.projects;
@@ -73,8 +67,8 @@ DROP POLICY IF EXISTS user_assets_objects_select_owner ON storage.objects;
 DROP POLICY IF EXISTS user_assets_objects_insert_owner ON storage.objects;
 
 -- ---------------------------------------------------------------------------
--- 4) RLS : public.projects — SELECT / INSERT / UPDATE propriétaire uniquement
---     Pas de DELETE pour authenticated (aucune policy DELETE)
+-- 5) RLS — public.projects (auth.uid() direct)
+--     SELECT / INSERT / UPDATE propriétaire — pas de DELETE
 -- ---------------------------------------------------------------------------
 
 CREATE POLICY projects_select_owner
@@ -97,8 +91,8 @@ CREATE POLICY projects_update_owner
   WITH CHECK (user_id = auth.uid());
 
 -- ---------------------------------------------------------------------------
--- 5) RLS : public.orders — SELECT uniquement si projet appartient à l’utilisateur
---     Aucune policy INSERT/UPDATE/DELETE → interdit pour authenticated (Service Role bypass)
+-- 6) RLS — public.orders : SELECT uniquement si projet appartient à l’utilisateur
+--     Aucune policy INSERT/UPDATE/DELETE pour authenticated (service_role + grants)
 -- ---------------------------------------------------------------------------
 
 CREATE POLICY orders_select_owner_project
@@ -115,8 +109,8 @@ CREATE POLICY orders_select_owner_project
   );
 
 -- ---------------------------------------------------------------------------
--- 6) RLS : public.media_assets — SELECT / INSERT / UPDATE via ownership projet
---     Pas de DELETE pour authenticated
+-- 7) RLS — public.media_assets (auth.uid() via ownership projet)
+--     Pas de DELETE
 -- ---------------------------------------------------------------------------
 
 CREATE POLICY media_assets_select_owner_project
@@ -167,9 +161,7 @@ CREATE POLICY media_assets_update_owner_project
   );
 
 -- ---------------------------------------------------------------------------
--- 7) Storage : storage.objects — bucket user-assets
---     SELECT + INSERT uniquement si segment [1] = 'projects' et segment [2]
---     = id d’un projet dont user_id = auth.uid()
+-- 8) Storage — bucket user-assets, chemin projects/{project_id}/...
 -- ---------------------------------------------------------------------------
 
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
@@ -207,8 +199,7 @@ CREATE POLICY user_assets_objects_insert_owner
   );
 
 -- ---------------------------------------------------------------------------
--- 8) Grants : authenticated — strict CTO
---     orders : SELECT seulement. projects & media_assets : pas de DELETE.
+-- 9) Grants — anon / authenticated (strict)
 -- ---------------------------------------------------------------------------
 
 REVOKE ALL ON TABLE public.projects FROM anon;
@@ -224,16 +215,18 @@ GRANT SELECT ON TABLE public.orders TO authenticated;
 REVOKE ALL ON TABLE public.media_assets FROM authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.media_assets TO authenticated;
 
--- Storage : accès API (si pas déjà accordé globalement)
 GRANT USAGE ON SCHEMA storage TO authenticated;
 GRANT SELECT, INSERT ON TABLE storage.objects TO authenticated;
 
 -- ---------------------------------------------------------------------------
--- 9) Vérifications manuelles recommandées (ne pas exécuter en prod aveuglément)
+-- 10) service_role — tables public (webhooks / jobs ; ne pas être bloqué par REVOKE ciblés)
+--      Élargit les privilèges sur TOUTES les tables existantes du schéma public.
+--      Les nouvelles tables créées après ce script : re-exécuter ce GRANT ou
+--      utiliser ALTER DEFAULT PRIVILEGES (hors scope MVP).
 -- ---------------------------------------------------------------------------
--- A) Deux comptes : A ne voit pas les lignes de B (projects / orders / media_assets).
--- B) Upload client vers projects/{own_uuid}/... OK ; vers projects/{foreign_uuid}/... refusé.
--- C) Webhook Stripe (service_role) : écritures orders toujours OK.
--- D) Dashboard Supabase → Storage → user-assets : supprimer toute policy
---    permissive résiduelle sur ce bucket qui OR avec les tiennes (RLS permissif).
+
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+
+-- =============================================================================
+-- Fin — Tests : upload projects/{own_project_id}/... ; 2 comptes ; webhook.
 -- =============================================================================
