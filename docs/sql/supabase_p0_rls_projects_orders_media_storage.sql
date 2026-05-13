@@ -2,7 +2,24 @@
 -- Odyssey — P0 durcissement : RLS (projects, orders, media_assets) + Storage
 -- Exécution : Supabase SQL Editor (pas de CREATE INDEX CONCURRENTLY)
 --
--- Hypothèses schéma :
+-- --- Double vérification (code source repo odyssey-frontend) ----------------
+-- media_assets.liaison projet : colonne **project_id** — CONFIRMÉE
+--   → src/lib/uploads/mediaUploadService.ts : cle `project_id`, upsert
+--     onConflict: "project_id,storage_path"
+-- Storage (prefixe objet) : **projects/** (sans slash initial dans `name`)
+--   → buildStoragePath() retourne :
+--     `projects/${projectId}/${yyyy}/${mm}/${dd}/...`
+--   → Les policies utilisent (storage.foldername(name))[1] = 'projects'
+--     et [2] = UUID projet — COHÉRENT avec le front.
+-- public.orders : **aucune** requête `.from("orders")` dans ce dépôt ;
+--   pas de dossier supabase/migrations ici. La colonne **project_id** est
+--   l'hypothèse architecture (B2C / webhook). Avant prod, valider en SQL :
+--   SELECT column_name FROM information_schema.columns
+--   WHERE table_schema = 'public' AND table_name = 'orders';
+--   Si le nom diffère (ex. project_uuid), remplacer orders.project_id dans
+--   ce script par le nom réel.
+--
+-- Hypothèses schéma (reste inchangé si la validation ci-dessus OK) :
 --   public.projects(id, user_id, ...)  — propriétaire = user_id = auth.uid()
 --   public.orders(project_id → projects.id)
 --   public.media_assets(project_id → projects.id)
