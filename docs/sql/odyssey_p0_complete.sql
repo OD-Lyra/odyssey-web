@@ -4,8 +4,8 @@
 --
 -- Prérequis : tables public.projects et public.media_assets existent déjà
 --   avec colonnes attendues (projects.id, projects.user_id ; media_assets.project_id).
--- Si public.orders existe déjà avec un schéma différent, CREATE IF NOT EXISTS
---   ne modifie rien : valider le schéma avant exécution.
+-- Si public.orders existait déjà (schéma partiel), CREATE IF NOT EXISTS ne change
+--   rien : le bloc 1bis ajoute les colonnes MVP manquantes avant COMMENT / index.
 --
 -- Après exécution : nettoyer les policies Storage résiduelles trop larges
 --   sur le bucket user-assets (RLS permissif = OR entre policies).
@@ -24,6 +24,27 @@ CREATE TABLE IF NOT EXISTS public.orders (
   status text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- ---------------------------------------------------------------------------
+-- 1bis) orders pré-existant sans colonnes MVP — alignement sans écraser les données
+-- ---------------------------------------------------------------------------
+
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS amount_total integer;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS currency text;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS status text;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS stripe_session_id text;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS created_at timestamptz;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS project_id uuid;
+
+UPDATE public.orders SET currency = COALESCE(currency, 'CAD') WHERE currency IS NULL;
+UPDATE public.orders SET created_at = COALESCE(created_at, now()) WHERE created_at IS NULL;
+
+ALTER TABLE public.orders ALTER COLUMN currency SET DEFAULT 'CAD';
+
+-- Index unique partiel (idempotent) si la contrainte UNIQUE de CREATE TABLE n’existe pas
+CREATE UNIQUE INDEX IF NOT EXISTS orders_stripe_session_id_unique
+  ON public.orders (stripe_session_id)
+  WHERE stripe_session_id IS NOT NULL;
 
 COMMENT ON COLUMN public.orders.amount_total IS 'Montant en minor units (ex. cents), aligné Stripe.';
 COMMENT ON COLUMN public.orders.stripe_session_id IS 'Stripe Checkout Session id (cs_...), unique si présent.';
