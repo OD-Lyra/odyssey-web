@@ -1,0 +1,54 @@
+-- =============================================================================
+-- RÉFÉRENCE — Policies Storage bucket `user-assets` (Odyssey P0)
+--
+-- ⚠️  Sur beaucoup de projets Supabase (surtout PRODUCTION / org), le rôle du
+--     SQL Editor n’est PAS propriétaire de storage.objects → exécuter ce bloc
+--     dans l’éditeur produit : ERROR 42501 « must be owner of table objects ».
+--
+-- Options :
+--   A) Dashboard : Storage → user-assets → Policies → New policy
+--      Créer 2 policies (SELECT + INSERT) pour le rôle authenticated, en
+--      recopiant les expressions USING / WITH CHECK ci-dessous (ou via
+--      « Definition » SQL si l’UI le propose).
+--   B) Migrations locales : `supabase migration new` + `supabase db push`
+--      (rôle migration souvent suffisant selon le projet).
+--   C) Support Supabase : demander qu’un superuser applique ce fichier.
+--
+-- Ne pas supprimer les policies trop permissives concurrentes sur ce bucket.
+-- =============================================================================
+
+-- (Référence — à appliquer avec un rôle propriétaire de storage.objects)
+
+-- ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- CREATE POLICY user_assets_objects_select_owner
+--   ON storage.objects
+--   FOR SELECT
+--   TO authenticated
+--   USING (
+--     bucket_id = 'user-assets'
+--     AND (storage.foldername(name))[1] = 'projects'
+--     AND (storage.foldername(name))[2] IS NOT NULL
+--     AND EXISTS (
+--       SELECT 1
+--       FROM public.projects p
+--       WHERE p.user_id = auth.uid()
+--         AND p.id::text = (storage.foldername(name))[2]
+--     )
+--   );
+
+-- CREATE POLICY user_assets_objects_insert_owner
+--   ON storage.objects
+--   FOR INSERT
+--   TO authenticated
+--   WITH CHECK (
+--     bucket_id = 'user-assets'
+--     AND (storage.foldername(name))[1] = 'projects'
+--     AND (storage.foldername(name))[2] IS NOT NULL
+--     AND EXISTS (
+--       SELECT 1
+--       FROM public.projects p
+--       WHERE p.user_id = auth.uid()
+--         AND p.id::text = (storage.foldername(name))[2]
+--     )
+--   );

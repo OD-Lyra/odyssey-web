@@ -9,6 +9,8 @@
 --
 -- Après exécution : nettoyer les policies Storage résiduelles trop larges
 --   sur le bucket user-assets (RLS permissif = OR entre policies).
+-- Storage P0 : si l’éditeur SQL renvoie 42501 sur storage.objects, appliquer
+--   les policies via Dashboard — voir docs/sql/odyssey_p0_storage_policies_REFERENCE.sql
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -84,8 +86,8 @@ DROP POLICY IF EXISTS media_assets_select_owner_project ON public.media_assets;
 DROP POLICY IF EXISTS media_assets_insert_owner_project ON public.media_assets;
 DROP POLICY IF EXISTS media_assets_update_owner_project ON public.media_assets;
 
-DROP POLICY IF EXISTS user_assets_objects_select_owner ON storage.objects;
-DROP POLICY IF EXISTS user_assets_objects_insert_owner ON storage.objects;
+-- Storage : DROP/CREATE POLICY sur storage.objects nécessite owner — voir section 8
+--   et odyssey_p0_storage_policies_REFERENCE.sql (Dashboard ou migration CLI).
 
 -- ---------------------------------------------------------------------------
 -- 5) RLS — public.projects (auth.uid() direct)
@@ -182,45 +184,21 @@ CREATE POLICY media_assets_update_owner_project
   );
 
 -- ---------------------------------------------------------------------------
--- 8) Storage — bucket user-assets, chemin projects/{project_id}/...
---     Si 42501 « must be owner of table objects » ici : le rôle SQL Editor
---     n’est pas propriétaire de storage.objects — créer les mêmes policies via
---     Dashboard → Storage → user-assets → Policies (équivalent SQL).
+-- 8) Storage — bucket user-assets (NON exécutable ici si 42501 « must be owner of table objects »)
+--
+--     Sur Supabase Cloud / org PRODUCTION, le rôle du SQL Editor n’est souvent
+--     pas propriétaire de storage.objects : ALTER / CREATE POLICY échouent.
+--
+--     → Appliquer les mêmes règles via le Dashboard :
+--        Storage → user-assets → Policies (2 policies : SELECT + INSERT, role authenticated)
+--     → Expressions SQL exactes : docs/sql/odyssey_p0_storage_policies_REFERENCE.sql
+--
+--     Le script principal s’arrête aux tables public.* ; sans policies Storage,
+--     l’upload peut rester ouvert ou refusé selon les policies déjà présentes :
+--     vérifier / supprimer les règles « public » conflictuelles sur ce bucket.
 -- ---------------------------------------------------------------------------
 
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY user_assets_objects_select_owner
-  ON storage.objects
-  FOR SELECT
-  TO authenticated
-  USING (
-    bucket_id = 'user-assets'
-    AND (storage.foldername(name))[1] = 'projects'
-    AND (storage.foldername(name))[2] IS NOT NULL
-    AND EXISTS (
-      SELECT 1
-      FROM public.projects p
-      WHERE p.user_id = auth.uid()
-        AND p.id::text = (storage.foldername(name))[2]
-    )
-  );
-
-CREATE POLICY user_assets_objects_insert_owner
-  ON storage.objects
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    bucket_id = 'user-assets'
-    AND (storage.foldername(name))[1] = 'projects'
-    AND (storage.foldername(name))[2] IS NOT NULL
-    AND EXISTS (
-      SELECT 1
-      FROM public.projects p
-      WHERE p.user_id = auth.uid()
-        AND p.id::text = (storage.foldername(name))[2]
-    )
-  );
+-- (Section SQL déplacée vers odyssey_p0_storage_policies_REFERENCE.sql — voir fichier.)
 
 -- ---------------------------------------------------------------------------
 -- 9) Grants — anon / authenticated (strict)
